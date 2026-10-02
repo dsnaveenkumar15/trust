@@ -1,3 +1,4 @@
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from core.db import connect
 from core.ollama import OllamaBackend
 from web.config import Settings
 from web.gate import Busy, Gate
@@ -136,6 +138,15 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.get("/healthz")
     def healthz():
+        """Readiness: the process answers AND its database opens. Docker's healthcheck and the uptime probe use it."""
+        try:
+            conn = connect(settings.db_path)
+            try:
+                conn.execute("SELECT 1")
+            finally:
+                conn.close()
+        except (sqlite3.Error, OSError):
+            return JSONResponse({"ok": False}, status_code=503)
         return {"ok": True}
 
     homes: dict = {}
