@@ -2,7 +2,7 @@
 {% block title %}How grades work · {{ meta.name }}{% endblock %}
 {% block content %}
 <h1>How grades work</h1>
-<p>Each audit reads one repository at one commit, extracts its tool definitions and runs deterministic rules. A Claude reviewer may confirm or dismiss rule findings with a reason code, and may add findings only when it quotes the source verbatim. Code, not the model, computes the score.</p>
+<p>Each audit reads one repository at one commit, extracts its tool definitions and runs deterministic rules. An AI reviewer may confirm or dismiss rule findings with a reason code, and may add findings only when it quotes the source verbatim. Code, not the model, computes the score.</p>
 <h2>Score</h2>
 <p>A finding costs its category <span class="mono">severity points × confidence factor</span>. One rule can cost a category at most {{ m.rule_cap_multiplier }}× its severity points. Categories start at 100; the total is their weighted mean.</p>
 <table>

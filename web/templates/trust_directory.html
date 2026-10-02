@@ -29,6 +29,6 @@
 </table>
 <p class="muted">{{ servers | length }} of {{ total }} servers</p>
 {% else %}
-<p class="muted">{% if total %}No servers match.{% else %}No audits published yet. The first audits run overnight.{% endif %}</p>
+<p class="muted">{% if total %}No servers match.{% else %}This directory does not list other people's projects. Use <a href="/check">Check a manifest</a> to review your own.{% endif %}</p>
 {% endif %}
 {% endblock %}

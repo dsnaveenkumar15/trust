@@ -48,7 +48,7 @@ def client(settings, host="trust.localhost"):
 
 def test_empty_state_before_first_publish(settings):
     r = client(settings).get("/")
-    assert r.status_code == 200 and "No audits published yet" in r.text
+    assert r.status_code == 200 and "does not list other people" in r.text
 
 
 def test_directory_lists_filters_and_sorts(settings):

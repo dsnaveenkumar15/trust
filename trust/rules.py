@@ -47,5 +47,5 @@ RULE_CATALOG = [
     {"rule": "no-license", "category": "transparency", "severity": "low", "checks": "No license declared."},
     {"rule": "no-readme", "category": "transparency", "severity": "low", "checks": "No README."},
     {"rule": "llm-review", "category": "any", "severity": "any",
-     "checks": "Added by the Claude reviewer; kept only when its quote matches the source verbatim."},
+     "checks": "Added by the AI reviewer; kept only when its quote matches the source verbatim."},
 ]

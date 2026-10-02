@@ -8,6 +8,11 @@ from trust.publishing import (EMBARGO_S, STALE_AFTER_S, SUMMARY_KEYS, build_entr
                               slug)
 
 
+@pytest.fixture(autouse=True)
+def third_party_on(monkeypatch):
+    monkeypatch.setenv("TRUST_THIRD_PARTY", "1")      # the owner's opt-in; the default-off tests below remove it
+
+
 def audit(conn, repo="acme/weather", sha="a" * 40, grade="B", status="graded", findings=None, now=1000.0):
     store.ensure_schema(conn)
     findings = findings if findings is not None else [
@@ -21,6 +26,21 @@ def audit(conn, repo="acme/weather", sha="a" * 40, grade="B", status="graded", f
         "needs_review": [], "provenance": {"ruleset": "1.0.0", "scoring": "1.0.0", "prompt": "trust.review@1",
                                            "model": "sonnet"}, "summary": "LLM summary"}, now)
     return store.audits_for(conn, repo)[0]
+
+
+def test_other_peoples_projects_are_not_published_unless_the_owner_opts_in(conn, monkeypatch):
+    audit(conn, repo="acme/weather")
+    monkeypatch.delenv("TRUST_THIRD_PARTY")
+    assert build_entries(conn, 5000.0) == [] and build_entries(conn, 5000.0, include_local=True) == []
+    audit(conn, repo="local/mine", sha="b" * 40)
+    assert [e["repo"] for e in build_entries(conn, 5000.0, include_local=True)] == ["local/mine"]
+
+
+def test_nothing_about_other_projects_is_discovered_or_refreshed_unless_opted_in(conn, monkeypatch):
+    monkeypatch.delenv("TRUST_THIRD_PARTY")
+    store.ensure_schema(conn)
+    schedule_periodic(conn, now=0.0)
+    assert sorted(r["job_type"] for r in conn.execute("SELECT job_type FROM jobs")) == ["trust.publish"]
 
 
 def test_slug():

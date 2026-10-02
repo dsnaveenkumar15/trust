@@ -26,7 +26,7 @@
     out.replaceChildren(line("Preparing the review prompt…", "muted"));
     try {
       const prepared = await postJson("/api/byok/prompt", input);
-      out.replaceChildren(line("Sending " + prepared.findings + " finding(s) to Claude with your key…", "muted"));
+      out.replaceChildren(line("Sending " + prepared.findings + " finding(s) to the model with your key…", "muted"));
       const model = form.model.value;
       const headers = {"x-api-key": key, "anthropic-version": "2023-06-01",
                        "anthropic-dangerous-direct-browser-access": "true", "content-type": "application/json"};
@@ -40,10 +40,10 @@
       const response = await fetch("https://api.anthropic.com/v1/messages",
                                    {method: "POST", headers: headers, body: JSON.stringify(request)});
       const message = await response.json().catch(function () { return {}; });
-      if (!response.ok) throw new Error(message.error && message.error.message ? message.error.message : "Claude API error (" + response.status + ")");
-      if (message.stop_reason === "refusal") throw new Error("Claude declined to review this input.");
+      if (!response.ok) throw new Error(message.error && message.error.message ? message.error.message : "Model API error (" + response.status + ")");
+      if (message.stop_reason === "refusal") throw new Error("The model declined to review this input.");
       const text = (message.content || []).find(function (block) { return block.type === "text"; });
-      if (!text) throw new Error("Claude returned no JSON.");
+      if (!text) throw new Error("The model returned no JSON.");
       const result = await postJson("/api/byok/apply", Object.assign({}, input, {output: JSON.parse(text.text)}));
       const list = document.createElement("div");
       window.atlasRenderFindings(list, result.findings);

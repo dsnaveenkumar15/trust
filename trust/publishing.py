@@ -2,6 +2,7 @@
 import hashlib
 import json
 import logging
+import os
 import re
 
 from core import review
@@ -83,12 +84,21 @@ def _entry(audit, server, embargo_until, now: float, is_newest: bool = True) -> 
     }
 
 
+def third_party_enabled() -> bool:
+    """Naming and grading other people's projects is off unless the owner turns it on (TRUST_THIRD_PARTY=1)."""
+    return os.environ.get("TRUST_THIRD_PARTY") == "1"
+
+
 def build_entries(conn, now: float, include_local: bool = False) -> list[dict]:
-    """local/ audits come from someone's checkout; they are published only for explicit local previews."""
+    """local/ audits come from someone's checkout; they are published only for explicit local previews.
+    Third-party repositories are published only when third_party_enabled()."""
     store.ensure_schema(conn)
     entries = []
     for repo in store.audited_repos(conn):
-        if repo.startswith("local/") and not include_local:
+        if repo.startswith("local/"):
+            if not include_local:
+                continue
+        elif not third_party_enabled():
             continue
         found = publishable_audit(conn, repo)
         if found is not None:

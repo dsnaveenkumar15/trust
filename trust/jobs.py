@@ -13,7 +13,7 @@ from core.worker import JobType
 from trust import store
 from trust.discovery import collect, enqueue_new
 from trust.freshness import refresh
-from trust.publishing import publish_directory
+from trust.publishing import publish_directory, third_party_enabled
 from trust.pipeline import stage_extract, stage_fetch, stage_record, stage_review, stage_rules, stage_score
 from trust.review import PROMPT_VERSION
 from trust.rules import RULESET_VERSION
@@ -51,8 +51,9 @@ PUBLISH_EVERY_S = 1800
 def schedule_periodic(conn, now: float) -> None:
     """Worker hook: idempotent per window, so calling it every loop is cheap."""
     store.ensure_schema(conn)
-    enqueue_discovery(conn, now)
-    enqueue_refresh(conn, now)
+    if third_party_enabled():       # without it nothing about other people's projects is fetched or audited
+        enqueue_discovery(conn, now)
+        enqueue_refresh(conn, now)
     schedule(conn, "trust", PUBLISH_JOB, PUBLISH_EVERY_S, now=now, priority=2.0)
 
 

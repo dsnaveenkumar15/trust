@@ -74,6 +74,16 @@ def _wire_blueprints(app: FastAPI, settings: Settings, homes: dict) -> None:
     app.state.admin_sections["blueprints"] = admin_blueprints.section
 
 
+
+def model_label(model_id) -> str:
+    """Neutral size label for display; the real model id stays in values and data."""
+    text = str(model_id or "").lower()
+    for key, label in (("opus", "large model"), ("sonnet", "mid-size model"), ("haiku", "small model")):
+        if key in text:
+            return label
+    return str(model_id or "")
+
+
 WIRING = {"trust": _wire_trust, "radar": _wire_radar, "blueprints": _wire_blueprints}
 
 
@@ -85,6 +95,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.admin_limiter = RateLimiter(per_minute=30, burst=30)
     app.state.admin_sections = {}      # planet -> provider(conn, now) -> dict, in wiring order
     app.state.templates = Jinja2Templates(directory=str(HERE / "templates"))
+    app.state.templates.env.filters["model_label"] = model_label
     app.state.templates.env.filters["date"] = lambda ts: (
         datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d") if ts else "")
     app.state.templates.env.filters["datetime"] = lambda ts: (
