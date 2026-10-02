@@ -3,41 +3,59 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <title>{% block title %}{{ meta.name }}{% endblock %}</title>
   <meta name="description" content="{{ meta.tagline }}">
   <link rel="icon" type="image/svg+xml" href="/static/icons/{{ planet }}.svg">
-  <link rel="preload" href="/static/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
   {% block head %}{% endblock %}
-  <link rel="stylesheet" href="/static/site.css?v=2">
+  <link rel="stylesheet" href="/static/site.css?v=3">
 </head>
 <body class="planet-{{ planet }}">
   <a class="skip" href="#main">Skip to content</a>
-  <header class="top">
-    <div class="top-inner">
-      <a class="wordmark" href="/">{{ meta.name }}</a>
-      <nav class="family" aria-label="naveenlabs AI tools">
+  <header class="bar">
+    <div class="bar-inner">
+      <a class="brand" href="/"><img src="/static/icons/{{ planet }}.svg" alt="" width="22" height="22">{{ meta.name }}</a>
+      {% block nav %}{% endblock %}
+      <nav class="family" aria-label="Other naveenlabs tools">
         {% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% endfor %}
-        <a href="https://naveenlabs.tech">naveenlabs.tech</a>
+        <a href="https://chat.naveenlabs.tech">Chat</a>
       </nav>
     </div>
-    {% block nav %}{% endblock %}
   </header>
-  {% if request.url.path == "/" and meta.lede %}
-  <section class="titleblock" aria-labelledby="tb-name">
-    <div class="tb-main">
-      <h1 id="tb-name" class="tb-name">{{ meta.name }}</h1>
-      <p class="tb-lede">{{ meta.lede }}</p>
-      <p class="tb-actions"><a class="btn" href="{{ meta.action[1] }}">{{ meta.action[0] }}</a><a class="btn btn-quiet" href="{{ meta.second[1] }}">{{ meta.second[0] }}</a></p>
+  {% if request.url.path == "/" and meta.headline %}
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title">{{ meta.headline }}</h1>
+      <p class="lede">{{ meta.lede }}</p>
+      <p class="actions"><a class="btn" href="{{ meta.action[1] }}">{{ meta.action[0] }}</a><a class="btn btn-quiet" href="{{ meta.second[1] }}">{{ meta.second[0] }}</a></p>
+      <p class="byline">Designed and built by <a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a></p>
     </div>
-    <dl class="tb-side">
-      <div><dt>Built by</dt><dd><a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a></dd></div>
-      <div><dt>Sibling tools</dt><dd>{% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
-    </dl>
+    <div class="hero-visual">{% block hero_visual %}{% endblock %}</div>
+  </section>
+  <section class="steps" aria-label="How {{ meta.name }} works">
+    <ol>
+      {% for title, text in meta.steps %}<li><h2>{{ title }}</h2><p>{{ text }}</p></li>{% endfor %}
+    </ol>
   </section>
   {% endif %}
   <main id="main">{% block content %}{% endblock %}</main>
   <footer class="foot">
-    <p class="foot-by">{{ meta.name }} is built and run by <a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a>, part of the naveenlabs AI galaxy.</p>
+    <div class="foot-grid">
+      <div class="foot-about">
+        <a class="brand" href="/"><img src="/static/icons/{{ planet }}.svg" alt="" width="22" height="22">{{ meta.name }}</a>
+        <p>{{ meta.tagline }}</p>
+        <p>Designed and built by <a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a>.</p>
+      </div>
+      <nav aria-label="naveenlabs AI tools">
+        <h2>More AI tools</h2>
+        <ul>{% for key, p in planets.items() if key != planet %}<li><a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a></li>{% endfor %}<li><a href="https://chat.naveenlabs.tech">Chat</a></li></ul>
+      </nav>
+      <nav aria-label="More">
+        <h2>More</h2>
+        <ul><li><a href="https://naveenlabs.tech">naveenlabs.tech</a></li></ul>
+      </nav>
+    </div>
     <p class="disclaimer">Independent personal project. Not affiliated with or endorsed by any company or project mentioned here, including those reviewed or named on this site. Product and project names belong to their owners. Automated analysis, provided as is, not professional advice.</p>
   </footer>
 </body>

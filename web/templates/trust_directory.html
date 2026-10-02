@@ -1,4 +1,20 @@
 {% extends "trust_base.html" %}
+{% block hero_visual %}
+<figure class="window" aria-label="Example check result">
+  <figcaption class="window-head"><span>Example check, live rules</span><span class="chip chip-bad">{{ sample.findings | length }} critical</span></figcaption>
+  <ul class="window-list">
+    {% for tool in sample.tools %}<li><code>{{ tool.name }}</code>{% if tool.flagged %}<span class="status status-bad">Flagged</span>{% else %}<span class="status status-ok">No findings</span>{% endif %}</li>{% endfor %}
+  </ul>
+  {% for f in sample.findings %}
+  <div class="window-finding">
+    <p class="finding-title"><span class="dot dot-bad" aria-hidden="true"></span>Hidden instructions in <code>{{ f.tool }}</code></p>
+    {% set parts = f.quote.split("<IMPORTANT>", 1) %}
+    <pre class="quote">{% if parts | length == 2 %}{{ parts[0] | trim }} <mark>&lt;IMPORTANT&gt;{{ parts[1] | replace('",', '') }}</mark>{% else %}{{ f.quote }}{% endif %}</pre>
+    <p class="finding-note">Tells the agent to read your SSH key and hide it from you.</p>
+  </div>
+  {% endfor %}
+</figure>
+{% endblock %}
 {% block content %}
 {% if total %}
 <h2>Published reviews</h2>
@@ -32,10 +48,10 @@
 <section class="explainer">
   <h2>What a check looks for</h2>
   <ul class="checklist">
-    <li><strong>Hidden instructions.</strong> Text in a tool description that tells the agent to do something you did not ask for, or to hide it from you.</li>
-    <li><strong>Tool shadowing.</strong> Descriptions that try to change how the agent uses your other tools.</li>
-    <li><strong>Invisible characters.</strong> Zero-width text that a person reading the description cannot see.</li>
-    <li><strong>Risky capabilities.</strong> Shell commands, dynamic code, reads of SSH or cloud credential files, calls to hard-coded addresses.</li>
+    <li><strong>Hidden instructions</strong> Text in a tool description that tells the agent to do something you did not ask for, or to hide it from you.</li>
+    <li><strong>Tool shadowing</strong> Descriptions that try to change how the agent uses your other tools.</li>
+    <li><strong>Invisible characters</strong> Zero-width text that a person reading the description cannot see.</li>
+    <li><strong>Risky capabilities</strong> Shell commands, dynamic code, reads of SSH or cloud credential files, calls to hard-coded addresses.</li>
   </ul>
   <p class="muted">This directory does not list other people's projects. Checks run on what you paste, and nothing is stored.</p>
 </section>

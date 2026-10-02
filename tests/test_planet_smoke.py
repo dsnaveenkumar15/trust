@@ -39,11 +39,11 @@ def test_every_page_says_it_is_independent_and_unaffiliated(tmp_path, planet):
 
 
 @pytest.mark.parametrize("planet", present())
-def test_home_has_the_title_block_and_every_page_names_its_author(tmp_path, planet):
+def test_home_has_the_hero_and_every_page_names_its_author(tmp_path, planet):
     c = client(make_settings(tmp_path), planet)
     home, other = c.get("/"), c.get("/no-such-page")
-    assert 'class="titleblock"' in home.text and PLANETS[planet]["action"][1] in home.text
-    assert "built and run by" in home.text and 'class="titleblock"' not in other.text
+    assert 'class="hero"' in home.text and PLANETS[planet]["action"][1] in home.text and 'class="steps"' in home.text
+    assert "Designed and built by" in home.text and 'class="hero"' not in other.text
 
 
 def test_unknown_hosts_are_404(tmp_path):

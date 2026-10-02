@@ -101,3 +101,12 @@ def test_trust_routes_do_not_exist_on_other_planets(settings):
     assert c.get("/methodology").status_code == 404
     assert c.get("/servers/acme--zeta").status_code == 404
     assert client(settings, "blueprints.localhost").get("/methodology").status_code == 404
+
+
+def test_home_preview_runs_the_real_rules_on_the_example(settings):
+    from web.trust_site import sample_check
+    sample = sample_check()
+    assert [f["rule"] for f in sample["findings"]] == ["hidden-instructions"]
+    assert [t["flagged"] for t in sample["tools"]] == [False, True]
+    html = client(settings).get("/").text
+    assert "Hidden instructions in" in html and "<mark>&lt;IMPORTANT&gt;" in html
