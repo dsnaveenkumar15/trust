@@ -16,6 +16,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var
 .hero h1 { font: 600 40px/1.2 var(--mono); color: var(--accent); margin: 32px 0 8px; }
 .foot { display: flex; justify-content: space-between; color: var(--muted); border-top: 1px solid var(--border); font-size: 14px; }
 .foot nav a { color: var(--accent); margin-left: 16px; }
+.foot { flex-wrap: wrap; }
+.foot .disclaimer { flex-basis: 100%; order: 3; font-size: 13px; }
 .badge { font: 12px var(--mono); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--muted); }
 .mono { font-family: var(--mono); }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }

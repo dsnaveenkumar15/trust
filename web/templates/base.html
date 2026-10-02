@@ -17,6 +17,7 @@
   <main>{% block content %}{% endblock %}</main>
   <footer class="foot">
     <span>part of the naveenlabs AI galaxy</span>
+    <span class="disclaimer">Independent personal project. Not affiliated with or endorsed by any company or project mentioned here, including those reviewed or named on this site. Product and project names belong to their owners. Automated analysis, provided as is, not professional advice.</span>
     <nav>{% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% endfor %}</nav>
   </footer>
 </body>

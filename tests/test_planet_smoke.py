@@ -32,6 +32,12 @@ def test_each_present_planet_renders_its_home_and_healthz(tmp_path, planet):
     assert r.status_code == 200 and f"<title>{PLANETS[planet]['name']}" in r.text and f'class="planet-{planet}"' in r.text
 
 
+@pytest.mark.parametrize("planet", present())
+def test_every_page_says_it_is_independent_and_unaffiliated(tmp_path, planet):
+    r = client(make_settings(tmp_path), planet).get("/")
+    assert "Not affiliated with or endorsed by any company or project mentioned here" in r.text
+
+
 def test_unknown_hosts_are_404(tmp_path):
     c = TestClient(create_app(make_settings(tmp_path)), base_url="http://not-ours.example")
     assert c.get("/").status_code == 404 and c.get("/healthz").status_code == 200
