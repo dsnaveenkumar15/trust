@@ -66,7 +66,7 @@ Then open http://trust.localhost:8000 (directory), `/check` (manifest check and 
 3. `cp .env.example .env`, `cp batch.env.example batch.env`; set `ADMIN_PASSWORD` (16+ characters; `/admin` stays disabled while it is the default or short); on the laptop run `claude setup-token` and paste the token into `batch.env`.
 4. `docker compose up -d --build`; Traefik picks up the labels and issues the certificate.
 5. Uptime Kuma: an HTTP monitor on `/healthz`, plus a push monitor whose URL goes in `KUMA_PUSH_URL`.
-
+6. Optional: `docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d` mounts the Radar app's data volume read-only, so discovery also reads the servers Radar reports as new.
 
 ## The shared core
 

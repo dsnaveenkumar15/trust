@@ -1,0 +1,19 @@
+# Optional: mount Radar's published data (read-only) so discovery also reads the MCP servers Radar reports as new.
+#   docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d
+# The volume is the one of the Radar stack (compose project name `radar`, volume `data`). Without it Trust still works.
+services:
+  web:
+    environment:
+      - RADAR_DATA_ROOT=/radar-data/published
+    volumes:
+      - radar_data:/radar-data:ro
+  batch:
+    environment:
+      - RADAR_DATA_ROOT=/radar-data/published
+    volumes:
+      - radar_data:/radar-data:ro
+
+volumes:
+  radar_data:
+    external: true
+    name: radar_data
