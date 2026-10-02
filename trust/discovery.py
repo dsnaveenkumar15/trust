@@ -1,10 +1,12 @@
 """Find MCP servers to audit and queue the ones never audited, most-starred first."""
+import json
 import logging
 import math
 import re
 
 from core import events
 from core.github import GitHubError, RepoNotFound
+from core.publish import load_current
 from trust import store
 from trust.sources import SourceError, registry_repos
 
@@ -22,7 +24,34 @@ def _valid(repo) -> str | None:
     return repo if _REPO.fullmatch(repo) and ".." not in repo else None
 
 
-def collect(conn, github, registry_client, now: float) -> dict:
+_DIGEST = re.compile(r"digests/\d{4}-\d{2}-\d{2}\.json")
+RADAR_DIGESTS_READ = 14
+
+
+def from_published_radar(conn, radar_root, now: float) -> int:
+    """Servers Radar reported as new, read from its published digests, so Trust needs no shared database with Radar."""
+    if not radar_root:
+        return 0
+    release = load_current(radar_root, "radar", "digests")
+    if release is None:
+        return 0
+    names = sorted((n for n in release.manifest.get("files", {}) if _DIGEST.fullmatch(n)), reverse=True)[:RADAR_DIGESTS_READ]
+    found = 0
+    for name in names:
+        try:
+            digest = json.loads(release.read(name))
+        except (OSError, ValueError):
+            continue
+        servers = digest.get("new_servers") if isinstance(digest, dict) else None
+        for entry in servers if isinstance(servers, list) else []:
+            repo = _valid(entry.get("repo")) if isinstance(entry, dict) else None
+            if repo:
+                store.upsert_server(conn, repo, "radar", 0, now)
+                found += 1
+    return found
+
+
+def collect(conn, github, registry_client, now: float, radar_root=None) -> dict:
     registry_error = None
     try:
         for repo in registry_repos(registry_client):
@@ -41,6 +70,7 @@ def collect(conn, github, registry_client, now: float) -> dict:
             store.upsert_server(conn, repo, "radar", 0, now)
 
     events.consume(conn, "trust.discovery", from_radar, types=["radar.mcp_server_discovered"])
+    from_published_radar(conn, radar_root, now)
     known = conn.execute("SELECT count(*) FROM trust_servers").fetchone()[0]
     return {"known": known, "registry_error": registry_error}
 

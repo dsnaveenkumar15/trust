@@ -75,7 +75,8 @@ def build_job_types(conn, github=None, backend=None, use_llm: bool = True, regis
         ("record", lambda job, out: stage_record(conn, out, model, time.time())),
     ]
     discover_stages = [
-        ("collect", lambda job, out: collect(conn, github, registry_client, time.time())),
+        ("collect", lambda job, out: collect(conn, github, registry_client, time.time(),
+                                             radar_root=os.environ.get("RADAR_DATA_ROOT") or data_root)),
         ("enqueue", lambda job, out: enqueue_new(conn, github, time.time())),
     ]
     refresh_stages = [("refresh", lambda job, out: refresh(conn, github, time.time()))]

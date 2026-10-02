@@ -44,7 +44,7 @@ Rule quality gate: `.venv\Scripts\python -m evals.trust_eval`.
 
 ## Trust site
 
-The worker schedules `trust.discover` and `trust.refresh` every 6 hours and `trust.publish` every 30 minutes.
+The worker schedules `trust.discover` and `trust.refresh` every 6 hours and `trust.publish` every 30 minutes. Discovery also reads the servers Radar reported as new from Radar's published digests (`RADAR_DATA_ROOT`, default `DATA_ROOT`), so it works when Trust and Radar are separate apps with separate databases.
 Audits with critical findings, partial snapshots or reviewer disagreements wait in `/admin` until you approve,
 reject or embargo them (embargo = publish counts now, details after 30 days).
 

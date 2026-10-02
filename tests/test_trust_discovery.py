@@ -122,3 +122,40 @@ def test_backlog_cap_stops_new_discovery_queueing(db, monkeypatch):
     assert len(first["queued"]) == 2
     second = enqueue_new(db, FakeGitHub(), now=3.0)
     assert second["queued"] == [] and second["backlog"] == 2
+
+
+def publish_radar_digests(root, *digests):
+    from core.publish import publish
+    files = {f"digests/{d['date']}.json": json.dumps(d).encode() for d in digests}
+    files["index.json"] = json.dumps({"digests": [{"date": d["date"]} for d in digests]}).encode()
+    publish(root, "radar", "digests", files, {})
+
+
+def test_published_radar_digests_feed_discovery_without_a_shared_database(db, tmp_path):
+    publish_radar_digests(tmp_path, {"date": "2026-10-02", "new_servers": [{"repo": "Acme/New-One"}, {"repo": "../etc"}, {"repo": 3}, "junk"]},
+                          {"date": "2026-10-01", "new_servers": [{"repo": "acme/old-one"}]})
+    collect(db, FakeGitHub(), registry(), now=1.0, radar_root=tmp_path)
+    assert store.get_server(db, "acme/new-one")["sources"] == "radar" and store.get_server(db, "acme/old-one")["sources"] == "radar"
+    assert db.execute("SELECT count(*) FROM trust_servers").fetchone()[0] == 2
+    collect(db, FakeGitHub(), registry(), now=2.0, radar_root=tmp_path)             # a second look changes nothing
+    assert db.execute("SELECT count(*) FROM trust_servers").fetchone()[0] == 2
+
+
+@pytest.mark.parametrize("digest", [{"date": "2026-10-02"}, {"date": "2026-10-02", "new_servers": None}, {"date": "2026-10-02", "new_servers": "x"},
+                                    {"date": "2026-10-02", "new_servers": [None, 1, {"repo": None}]}])
+def test_odd_or_missing_radar_data_is_ignored(db, tmp_path, digest):
+    publish_radar_digests(tmp_path, digest)
+    collect(db, FakeGitHub(), registry(), now=1.0, radar_root=tmp_path)
+    collect(db, FakeGitHub(), registry(), now=1.0, radar_root=tmp_path / "nowhere")
+    collect(db, FakeGitHub(), registry(), now=1.0, radar_root=None)
+    assert db.execute("SELECT count(*) FROM trust_servers").fetchone()[0] == 0
+
+
+def test_the_discover_job_reads_radar_data_from_the_configured_root(db, tmp_path, monkeypatch):
+    publish_radar_digests(tmp_path, {"date": "2026-10-02", "new_servers": [{"repo": "acme/from-radar"}]})
+    monkeypatch.setenv("RADAR_DATA_ROOT", str(tmp_path))
+    types = build_job_types(db, github=FakeGitHub(), use_llm=False, registry_client=registry())
+    from trust.jobs import enqueue_discovery
+    enqueue_discovery(db, now=0.0)
+    assert run_once(db, types, {"trust": 1.0}, "w") == "done"
+    assert [r for r, _ in queued_audits(db)] == ["acme/from-radar"]
