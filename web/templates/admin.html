@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.name }} · admin{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<h1 class="mono">admin</h1>
+
+<h2>Claude quota</h2>
+<table>
+  <tr><th>allowance</th><th>used</th><th>night</th><th>may call</th><th>breaker open until</th><th>last error</th></tr>
+  <tr class="mono">
+    <td>{{ quota.allowance }}</td><td>{{ quota.used }}</td><td>{{ quota.night }}</td><td>{{ quota.may_call }}</td>
+    <td>{{ quota.breaker_open_until | int }}</td><td>{{ quota.last_error or "-" }}</td>
+  </tr>
+</table>
+
+<h2>Last 24h</h2>
+<table>
+  <tr><th>jobs</th><td class="mono">{% for k, v in summary.jobs.items() %}{{ k }}={{ v }} {% else %}-{% endfor %}</td></tr>
+  <tr><th>llm calls</th><td class="mono">{% for k, v in summary.llm_calls.items() %}{{ k }}={{ v }} {% else %}-{% endfor %}</td></tr>
+  <tr><th>open reviews</th><td class="mono">{{ summary.open_reviews }}</td></tr>
+  <tr><th>dead jobs (all time)</th><td class="mono">{{ summary.dead_jobs }}</td></tr>
+</table>
+
+{% for s in sections %}{% include "admin_" ~ s ~ ".html" %}{% endfor %}
+
+<h2>Review queue</h2>
+<table>
+  <tr><th>planet</th><th>kind</th><th>ref</th><th>payload</th><th>decision</th></tr>
+  {% for r in reviews %}
+  <tr>
+    <td>{{ r.planet }}</td><td class="mono">{{ r.kind }}</td><td class="mono">{{ r.ref }}</td>
+    <td class="mono">{{ r.payload }}</td>
+    <td>
+      <form method="post" action="/admin/reviews/{{ r.id }}">
+        <input type="text" name="note" placeholder="note">
+        <button name="decision" value="approved">approve</button>
+        <button name="decision" value="rejected">reject</button>
+        <button name="decision" value="embargoed">embargo 30d</button>
+      </form>
+      {% if r.kind == "radar-error" and r.data.date and r.data.cluster %}
+      <form method="post" action="/admin/errata">
+        <input type="hidden" name="review_id" value="{{ r.id }}">
+        <input type="hidden" name="date" value="{{ r.data.date }}"><input type="hidden" name="cluster" value="{{ r.data.cluster }}">
+        <input type="text" name="text" maxlength="1000" placeholder="public erratum text" required>
+        <button>publish erratum</button>
+      </form>
+      {% elif r.kind == "unknown-entity" and r.data.name %}
+      <form method="post" action="/admin/aliases">
+        <input type="hidden" name="review_id" value="{{ r.id }}"><input type="hidden" name="name" value="{{ r.data.name }}">
+        <select name="entity_id">{% for e in entity_ids|default([]) %}<option value="{{ e }}">{{ e }}</option>{% endfor %}</select>
+        <button>alias to entity</button>
+      </form>
+      {% elif r.kind == "blueprint_approval" and r.data.id %}
+      <a href="/admin/blueprints/{{ r.data.id }}/{{ r.data.version }}">preview</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="5">nothing to review</td></tr>{% endfor %}
+</table>
+
+<h2>Dead jobs</h2>
+<table>
+  <tr><th>id</th><th>planet</th><th>type</th><th>key</th><th>error</th><th></th></tr>
+  {% for j in dead %}
+  <tr class="mono">
+    <td>{{ j.id }}</td><td>{{ j.planet }}</td><td>{{ j.job_type }}</td><td>{{ j.key }}</td><td>{{ j.last_error }}</td>
+    <td><form method="post" action="/admin/jobs/{{ j.id }}/retry"><button>retry</button></form></td>
+  </tr>
+  {% else %}<tr><td colspan="6">none</td></tr>{% endfor %}
+</table>
+{% endblock %}

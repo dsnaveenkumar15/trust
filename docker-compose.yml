@@ -1,0 +1,60 @@
+services:
+  web:
+    build:
+      context: .
+      target: web
+    env_file: .env
+    environment:
+      - DB_PATH=/data/trust.db
+      - DATA_ROOT=/data/published
+      - PLANETS=trust
+      - TRUST_PROXY=1
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    networks:
+      - default
+      - ai
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.trust.rule=Host(`${TRUST_HOST:-trust.naveenlabs.tech}`)
+      - traefik.http.routers.trust.entrypoints=websecure
+      - traefik.http.routers.trust.tls.certresolver=letsencrypt
+      - traefik.http.services.trust.loadbalancer.server.port=8000
+
+  batch:
+    build:
+      context: .
+      target: batch
+    env_file:
+      - .env
+      - batch.env
+    environment:
+      - DB_PATH=/data/trust.db
+      - DATA_ROOT=/data/published
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1G
+    networks:
+      - default
+      - ai
+
+networks:
+  ai:
+    external: true
+    name: naveenlabs-ai_default
+
+volumes:
+  data:

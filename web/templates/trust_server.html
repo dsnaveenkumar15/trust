@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ s.repo }} · {{ meta.name }}{% endblock %}
+{% block content %}
+<p><a href="/">&larr; all servers</a></p>
+<h1 class="mono">{{ s.repo }}</h1>
+<p>
+  <span class="grade grade-{{ s.grade or 'none' }}">{{ s.grade or "not scored" }}</span>
+  {% if s.score is not none %}<span class="mono">score {{ s.score }}</span>{% endif %}
+  <span class="badge">{{ s.status }}</span>
+  {% if s.stale %}<span class="badge">stale</span>{% endif %}
+  {% if s.newer_audit_pending %}<span class="badge">newer audit under review</span>{% endif %}
+</p>
+<p class="muted mono">audit #{{ s.provenance.audit_id }} · commit {{ s.sha[:12] }} · rules v{{ s.provenance.ruleset }} · scoring v{{ s.provenance.scoring }}{% if s.provenance.prompt %} · {{ s.provenance.prompt }}{% endif %} · {{ s.audited_at | date }}</p>
+{% if s.categories %}
+<table class="categories">
+  {% for c, v in s.categories.items() %}
+  <tr><th>{{ c | replace("_", " ") }}</th><td><meter min="0" max="100" low="55" high="85" optimum="100" value="{{ v }}">{{ v }}</meter></td><td class="mono">{{ v }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% if s.under_disclosure %}
+<div class="notice"><strong>Under disclosure.</strong> Findings were shared with the maintainer and will be published after {{ s.disclosure_ends | date }}.
+  Counts: {% for sev, n in s.counts.items() %}{{ sev }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}.</div>
+{% elif s.findings %}
+<h2>Findings ({{ s.findings | length }})</h2>
+{% for f in s.findings %}
+<div class="finding sev-{{ f.severity }}">
+  <p><span class="badge">{{ f.severity }}</span> <span class="mono">{{ f.rule }}</span>{% if f.tool %} · tool <span class="mono">{{ f.tool }}</span>{% endif %}</p>
+  <p>{{ f.message }}</p>
+  {% if f.quote %}
+  <p class="mono">{% if evidence_base %}<a href="{{ evidence_base }}/{{ f.file }}#L{{ f.line }}">{{ f.file }}:{{ f.line }}</a>{% else %}{{ f.file }}:{{ f.line }}{% endif %}</p>
+  <pre><code>{{ f.quote }}</code></pre>
+  {% endif %}
+  {% if f.explanation %}<p class="muted">Reviewer note: {{ f.explanation }}</p>{% endif %}
+</div>
+{% endfor %}
+{% else %}
+<p>No findings.</p>
+{% endif %}
+<p class="muted">Automated static review, not a guarantee.{% if dispute_url %} <a href="{{ dispute_url }}">Dispute a finding</a>.{% endif %} <a href="/methodology">How grades work</a>.</p>
+{% endblock %}

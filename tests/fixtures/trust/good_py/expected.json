@@ -1,0 +1,1 @@
+{"must": [], "must_not": ["hidden-instructions", "invisible-unicode", "tool-shadowing", "auditor-addressed", "shell-exec", "dynamic-eval", "sensitive-path", "hardcoded-secret", "encoded-blob"]}

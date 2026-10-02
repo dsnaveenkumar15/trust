@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ meta.name }}{% endblock %}</title>
+  <meta name="description" content="{{ meta.tagline }}">
+  {% block head %}{% endblock %}
+  <link rel="stylesheet" href="/static/site.css">
+</head>
+<body class="planet-{{ planet }}">
+  <header class="top">
+    <a class="wordmark" href="/">{{ meta.name }}</a>
+    <span class="tagline">{{ meta.tagline }}</span>
+  </header>
+  {% block nav %}{% endblock %}
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="foot">
+    <span>part of the naveenlabs AI galaxy</span>
+    <nav>{% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% endfor %}</nav>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Check a manifest · {{ meta.name }}{% endblock %}
+{% block content %}
+<h1>Check a tool manifest</h1>
+<p>Paste the JSON your MCP server returns for <span class="mono">tools/list</span>. The description rules run instantly; nothing is stored.</p>
+<form id="check-form">
+  <textarea name="manifest" aria-label="Tool manifest JSON" placeholder='{"tools": [{"name": "add", "description": "Adds two numbers."}]}' required></textarea>
+  <p><button type="submit">check</button></p>
+</form>
+<div id="check-result" aria-live="polite"></div>
+
+<h2>Deep audit with your own key</h2>
+<p class="muted">Runs the same Claude review the nightly audits use, from your browser with your Anthropic API key. The key goes only to api.anthropic.com; it is never sent to this site and never stored.</p>
+<form id="byok-form">
+  <textarea name="manifest" aria-label="Tool manifest JSON" required></textarea>
+  <p><input type="text" name="filename" value="server.py" aria-label="Source file name"></p>
+  <textarea name="code" aria-label="Server source code (optional)" placeholder="optional: paste one server source file"></textarea>
+  <p>
+    <select name="model" aria-label="Claude model">{% for m in byok_models %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select>
+    <input type="password" id="byok-key" autocomplete="off" aria-label="Anthropic API key" placeholder="sk-ant-..." required>
+    <button type="submit">run deep audit</button>
+  </p>
+</form>
+<div id="byok-result" aria-live="polite"></div>
+<script src="/static/trust-check.js"></script>
+<script src="/static/trust-byok.js"></script>
+{% endblock %}

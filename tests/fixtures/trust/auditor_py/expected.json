@@ -1,0 +1,1 @@
+{"must": ["auditor-addressed"], "must_not": ["shell-exec", "hidden-instructions"]}

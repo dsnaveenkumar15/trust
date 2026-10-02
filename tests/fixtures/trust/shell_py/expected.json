@@ -1,0 +1,1 @@
+{"must": ["shell-exec"], "must_not": ["hidden-instructions", "tool-shadowing"]}

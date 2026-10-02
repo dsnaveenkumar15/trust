@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}How grades work · {{ meta.name }}{% endblock %}
+{% block content %}
+<h1>How grades work</h1>
+<p>Each audit reads one repository at one commit, extracts its tool definitions and runs deterministic rules. A Claude reviewer may confirm or dismiss rule findings with a reason code, and may add findings only when it quotes the source verbatim. Code, not the model, computes the score.</p>
+<h2>Score</h2>
+<p>A finding costs its category <span class="mono">severity points × confidence factor</span>. One rule can cost a category at most {{ m.rule_cap_multiplier }}× its severity points. Categories start at 100; the total is their weighted mean.</p>
+<table>
+  <tr><th>severity</th><th>points</th></tr>
+  {% for k, v in m.severity_points.items() %}<tr><td>{{ k }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+</table>
+<table>
+  <tr><th>confidence</th><th>factor</th></tr>
+  {% for k, v in m.confidence_factor.items() %}<tr><td>{{ k }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+</table>
+<table>
+  <tr><th>category</th><th>weight</th></tr>
+  {% for k, v in m.category_weights.items() %}<tr><td>{{ k | replace("_", " ") }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+</table>
+<p>Grades: {% for b in m.grade_bands %}{{ b.grade }} ≥ {{ b.min }}, {% endfor %}otherwise F. Any critical finding caps the grade at {{ m.critical_cap }}.</p>
+<h2>Rules</h2>
+<table>
+  <tr><th>rule</th><th>category</th><th>severity</th><th>dismissable</th><th>checks</th></tr>
+  {% for r in m.rules %}<tr><td class="mono">{{ r.rule }}</td><td>{{ r.category }}</td><td>{{ r.severity }}</td><td>{{ "yes" if r.dismissable else "no" }}</td><td>{{ r.checks }}</td></tr>{% endfor %}
+</table>
+<h2>Accuracy</h2>
+{% if m.evaluation %}
+<p>On {{ m.evaluation.cases }} labelled cases the critical/high rules score precision <span class="mono">{{ m.evaluation.precision }}</span> and recall <span class="mono">{{ m.evaluation.recall }}</span>. CI fails if either drops.</p>
+{% else %}
+<p class="muted">Evaluation results unavailable.</p>
+{% endif %}
+<h2>Disclosure</h2>
+<p>Harsh results are approved by a person before publishing. Apparently unintentional vulnerabilities are held for {{ m.embargo_days }} days while the maintainer is told; the listing shows only counts until then. Audits older than {{ m.stale_days }} days, or whose tool definitions changed since, are marked stale.</p>
+<p class="muted mono">rules v{{ m.versions.ruleset }} · scoring v{{ m.versions.scoring }} · {{ m.versions.prompt }}</p>
+{% endblock %}
