@@ -33,22 +33,22 @@
     <td>
       <form method="post" action="/admin/reviews/{{ r.id }}">
         <input type="text" name="note" placeholder="note">
-        <button name="decision" value="approved">approve</button>
-        <button name="decision" value="rejected">reject</button>
-        <button name="decision" value="embargoed">embargo 30d</button>
+        <button name="decision" value="approved">Approve</button>
+        <button name="decision" value="rejected">Reject</button>
+        <button name="decision" value="embargoed">Embargo 30d</button>
       </form>
       {% if r.kind == "radar-error" and r.data.date and r.data.cluster %}
       <form method="post" action="/admin/errata">
         <input type="hidden" name="review_id" value="{{ r.id }}">
         <input type="hidden" name="date" value="{{ r.data.date }}"><input type="hidden" name="cluster" value="{{ r.data.cluster }}">
         <input type="text" name="text" maxlength="1000" placeholder="public erratum text" required>
-        <button>publish erratum</button>
+        <button>Publish erratum</button>
       </form>
       {% elif r.kind == "unknown-entity" and r.data.name %}
       <form method="post" action="/admin/aliases">
         <input type="hidden" name="review_id" value="{{ r.id }}"><input type="hidden" name="name" value="{{ r.data.name }}">
         <select name="entity_id">{% for e in entity_ids|default([]) %}<option value="{{ e }}">{{ e }}</option>{% endfor %}</select>
-        <button>alias to entity</button>
+        <button>Alias to entity</button>
       </form>
       {% elif r.kind == "blueprint_approval" and r.data.id %}
       <a href="/admin/blueprints/{{ r.data.id }}/{{ r.data.version }}">preview</a>
@@ -64,7 +64,7 @@
   {% for j in dead %}
   <tr class="mono">
     <td>{{ j.id }}</td><td>{{ j.planet }}</td><td>{{ j.job_type }}</td><td>{{ j.key }}</td><td>{{ j.last_error }}</td>
-    <td><form method="post" action="/admin/jobs/{{ j.id }}/retry"><button>retry</button></form></td>
+    <td><form method="post" action="/admin/jobs/{{ j.id }}/retry"><button>Retry</button></form></td>
   </tr>
   {% else %}<tr><td colspan="6">none</td></tr>{% endfor %}
 </table>

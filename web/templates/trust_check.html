@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "trust_base.html" %}
 {% block title %}Check a manifest · {{ meta.name }}{% endblock %}
 {% block content %}
 <h1>Check a tool manifest</h1>
 <p>Paste the JSON your MCP server returns for <span class="mono">tools/list</span>. The description rules run instantly; nothing is stored.</p>
 <form id="check-form">
   <textarea name="manifest" aria-label="Tool manifest JSON" placeholder='{"tools": [{"name": "add", "description": "Adds two numbers."}]}' required></textarea>
-  <p><button type="submit">check</button></p>
+  <p><button type="submit">Check</button></p>
 </form>
 <div id="check-result" aria-live="polite"></div>
 
@@ -18,7 +18,7 @@
   <p>
     <select name="model" aria-label="Model size">{% for m in byok_models %}<option value="{{ m }}">{{ m | model_label }}</option>{% endfor %}</select>
     <input type="password" id="byok-key" autocomplete="off" aria-label="API key" placeholder="your API key" required>
-    <button type="submit">run deep audit</button>
+    <button type="submit">Run deep audit</button>
   </p>
 </form>
 <div id="byok-result" aria-live="polite"></div>

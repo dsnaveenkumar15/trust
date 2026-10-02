@@ -38,6 +38,14 @@ def test_every_page_says_it_is_independent_and_unaffiliated(tmp_path, planet):
     assert "Not affiliated with or endorsed by any company or project mentioned here" in r.text
 
 
+@pytest.mark.parametrize("planet", present())
+def test_home_has_the_title_block_and_every_page_names_its_author(tmp_path, planet):
+    c = client(make_settings(tmp_path), planet)
+    home, other = c.get("/"), c.get("/no-such-page")
+    assert 'class="titleblock"' in home.text and PLANETS[planet]["action"][1] in home.text
+    assert "built and run by" in home.text and 'class="titleblock"' not in other.text
+
+
 def test_unknown_hosts_are_404(tmp_path):
     c = TestClient(create_app(make_settings(tmp_path)), base_url="http://not-ours.example")
     assert c.get("/").status_code == 404 and c.get("/healthz").status_code == 200

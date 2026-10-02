@@ -5,20 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{{ meta.name }}{% endblock %}</title>
   <meta name="description" content="{{ meta.tagline }}">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/{{ planet }}.svg">
+  <link rel="preload" href="/static/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
   {% block head %}{% endblock %}
-  <link rel="stylesheet" href="/static/site.css">
+  <link rel="stylesheet" href="/static/site.css?v=2">
 </head>
 <body class="planet-{{ planet }}">
+  <a class="skip" href="#main">Skip to content</a>
   <header class="top">
-    <a class="wordmark" href="/">{{ meta.name }}</a>
-    <span class="tagline">{{ meta.tagline }}</span>
+    <div class="top-inner">
+      <a class="wordmark" href="/">{{ meta.name }}</a>
+      <nav class="family" aria-label="naveenlabs AI tools">
+        {% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% endfor %}
+        <a href="https://naveenlabs.tech">naveenlabs.tech</a>
+      </nav>
+    </div>
+    {% block nav %}{% endblock %}
   </header>
-  {% block nav %}{% endblock %}
-  <main>{% block content %}{% endblock %}</main>
+  {% if request.url.path == "/" and meta.lede %}
+  <section class="titleblock" aria-labelledby="tb-name">
+    <div class="tb-main">
+      <h1 id="tb-name" class="tb-name">{{ meta.name }}</h1>
+      <p class="tb-lede">{{ meta.lede }}</p>
+      <p class="tb-actions"><a class="btn" href="{{ meta.action[1] }}">{{ meta.action[0] }}</a><a class="btn btn-quiet" href="{{ meta.second[1] }}">{{ meta.second[0] }}</a></p>
+    </div>
+    <dl class="tb-side">
+      <div><dt>Built by</dt><dd><a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a></dd></div>
+      <div><dt>Sibling tools</dt><dd>{% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
+    </dl>
+  </section>
+  {% endif %}
+  <main id="main">{% block content %}{% endblock %}</main>
   <footer class="foot">
-    <span>part of the naveenlabs AI galaxy</span>
-    <span class="disclaimer">Independent personal project. Not affiliated with or endorsed by any company or project mentioned here, including those reviewed or named on this site. Product and project names belong to their owners. Automated analysis, provided as is, not professional advice.</span>
-    <nav>{% for key, p in planets.items() if key != planet %}<a href="{{ scheme }}://{{ hosts[key] }}{{ port }}/">{{ p.name }}</a>{% endfor %}</nav>
+    <p class="foot-by">{{ meta.name }} is built and run by <a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a>, part of the naveenlabs AI galaxy.</p>
+    <p class="disclaimer">Independent personal project. Not affiliated with or endorsed by any company or project mentioned here, including those reviewed or named on this site. Product and project names belong to their owners. Automated analysis, provided as is, not professional advice.</p>
   </footer>
 </body>
 </html>
