@@ -10,7 +10,7 @@ Last reviewed: 2026-10-03.
 
 | Public host | What it is | Code |
 |---|---|---|
-| `naveenlabs.tech` | Landing page (static) | `naveenlabs-home` |
+| `naveenlabs.tech` | Landing page (static, unprivileged nginx; browsers revalidate on every visit) | `naveenlabs-home` |
 | `trust.naveenlabs.tech` | Security review of MCP server tool lists | `trust` (and `atlas`) |
 | `radar.naveenlabs.tech` | Release digest and dependency upgrade check for AI libraries | `radar` (and `atlas`) |
 | `blueprints.naveenlabs.tech` | Linted, priced reference architectures for AI agents | `blueprints` (and `atlas`) |
@@ -164,6 +164,10 @@ docker inspect -f '{{.State.Health.Status}}' <app>-web-1     # wait for "healthy
 ```
 
 Rollback: `git checkout <previous commit>` in `/opt/<app>`, then `docker compose up -d --build`.
+
+A deploy recreates the container, so each app is unreachable for about 4 seconds: Traefik only routes to a container
+once its health check passes, and health checks poll every 2 s while a container starts (`start_interval`). Zero
+downtime would need two copies behind the proxy (blue/green); not worth it at this scale.
 
 ### Monitoring
 
