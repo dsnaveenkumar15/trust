@@ -23,8 +23,8 @@
 .planet-radar { --accent: #A45F00; --accent-soft: #FBF0D9; }
 .planet-blueprints { --accent: #2453C4; --accent-soft: #E7EEFC; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* Dark theme (set by /static/theme.js from the saved choice or the system setting). */
+  :root[data-theme="dark"] {
     --bg: #0D1015; --surface: #151A21; --surface-2: #1B212A; --ink: #ECEFF3; --ink-2: #C3CAD3; --muted: #939DA9;
     --rule: rgba(236, 239, 243, 0.09); --rule-2: rgba(236, 239, 243, 0.16); --field: rgba(236, 239, 243, 0.24);
     --accent: #ECEFF3; --accent-ink: #0D1015; --accent-soft: #232A34;
@@ -33,11 +33,9 @@
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.6);
   }
-  .planet-trust { --accent: #4CC496; --accent-soft: rgba(76, 196, 150, 0.14); }
-  .planet-radar { --accent: #E8A93C; --accent-soft: rgba(232, 169, 60, 0.14); }
-  .planet-blueprints { --accent: #82A7F8; --accent-soft: rgba(130, 167, 248, 0.14); }
-}
-
+  :root[data-theme="dark"] .planet-trust { --accent: #4CC496; --accent-soft: rgba(76, 196, 150, 0.14); }
+  :root[data-theme="dark"] .planet-radar { --accent: #E8A93C; --accent-soft: rgba(232, 169, 60, 0.14); }
+  :root[data-theme="dark"] .planet-blueprints { --accent: #82A7F8; --accent-soft: rgba(130, 167, 248, 0.14); }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--sans); }
@@ -77,6 +75,14 @@ p code, li code, td code { background: var(--surface-2); padding: 1px 6px; borde
 .family { display: flex; gap: 20px; margin-left: auto; font-size: 14px; }
 .family a { color: var(--muted); text-decoration: none; }
 .family a:hover { color: var(--ink); }
+.theme-toggle { flex: none; display: inline-grid !important; place-items: center; width: 36px !important; height: 36px !important; padding: 0 !important;
+  border-radius: 999px !important; border: 1px solid var(--rule-2) !important; background: var(--surface) !important; color: var(--ink) !important; transform: none !important; }
+.theme-toggle:hover { background: var(--surface-2) !important; }
+.theme-toggle svg { width: 16px; height: 16px; }
+/* The icon shows the theme a click switches to: a moon in light mode, a sun in dark mode. */
+.theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
 /* Hero: the claim on the left, the tool working on the right. */
 .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 80px); align-items: center; padding-top: clamp(48px, 8vw, 104px); padding-bottom: clamp(40px, 6vw, 72px); }
@@ -158,12 +164,10 @@ mark { background: var(--mark); color: var(--ink); border-radius: 3px; padding: 
 .btn-quiet:hover { background: var(--surface-2); }
 button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 td button { height: 34px; padding: 0 14px; font-size: 14px; }
-@media (prefers-color-scheme: dark) {
-  .btn, button, input[type=submit] { color: #0D1015; }
-  .btn:hover, button:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); }
-  .btn-quiet { color: var(--ink); }
-}
-
+/* Dark theme (set by /static/theme.js from the saved choice or the system setting). */
+  :root[data-theme="dark"] .btn, :root[data-theme="dark"] button, :root[data-theme="dark"] input[type=submit] { color: #0D1015; }
+  :root[data-theme="dark"] .btn:hover, :root[data-theme="dark"] button:hover { background: color-mix(in srgb, var(--accent) 86%, #fff); }
+  :root[data-theme="dark"] .btn-quiet { color: var(--ink); }
 /* Fields */
 input[type=text], input[type=password], input[type=number], input[type=search], input[type=url], select, textarea {
   font: 400 15px/1.4 var(--sans); color: var(--ink); background-color: var(--surface); border: 1px solid var(--field);
@@ -261,6 +265,7 @@ ol, ul { padding-left: 22px; }
   .hero { grid-template-columns: 1fr; }
   .hero h1 { max-width: 18ch; }
   .family { display: none; }
+  .theme-toggle { margin-left: auto; }
 }
 @media (max-width: 700px) {
   .bar-inner { flex-wrap: wrap; gap: 4px 16px; padding-top: 8px; padding-bottom: 6px; }

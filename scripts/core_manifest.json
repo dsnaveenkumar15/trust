@@ -16,6 +16,7 @@
     "web/templates/admin.html",
     "web/templates/home.html",
     "web/static/site.css",
+    "web/static/theme.js",
     "web/static/fonts/**",
     "web/static/icons/**",
     "tests/__init__.py",
