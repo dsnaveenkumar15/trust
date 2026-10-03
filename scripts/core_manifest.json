@@ -41,6 +41,7 @@
     "tests/test_claude_cli.py",
     "tests/test_github.py",
     "tests/fixtures/claude_cli_envelope.json",
+    "docs/ARCHITECTURE.md",
     "scripts/core_manifest.json",
     "scripts/sync_core.py"
   ]
