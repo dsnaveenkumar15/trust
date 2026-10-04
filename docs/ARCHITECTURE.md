@@ -4,7 +4,7 @@ How Trust, Radar, Blueprints and Chat are built, deployed, secured and kept runn
 shared core, so every app repository (`trust`, `radar`, `blueprints`) carries the same copy; the monorepo `atlas` is
 the master.
 
-Last reviewed: 2026-10-03.
+Last reviewed: 2026-10-04.
 
 ## 1. What runs where
 
@@ -17,7 +17,8 @@ Last reviewed: 2026-10-03.
 | `chat.naveenlabs.tech` | Small local model behind a rate-limited, guarded API | `naveenlabs-ai` |
 | `tradfi.` / `web3.` | Finance apps (separate projects, same server) | `zerodha` / `binance` repos |
 
-Not public (reachable only through an SSH tunnel, bound to `127.0.0.1`): Portainer, Uptime Kuma, n8n, Flowise.
+Not public (bound to `127.0.0.1`): Portainer and Uptime Kuma are reachable only from the owner's devices over a private
+Tailscale network (see Operations); n8n and Flowise are configured but not running.
 
 Everything runs on one VPS (Ubuntu, Docker Compose), behind one reverse proxy.
 
@@ -105,13 +106,15 @@ Everything runs on one VPS (Ubuntu, Docker Compose), behind one reverse proxy.
 | Exposed admin tools | Portainer, Kuma, n8n and Flowise listen on `127.0.0.1` only (Docker-published ports bypass UFW, so loopback binding is what keeps them private) |
 | Leaked secrets | Secrets live in `.env` / `batch.env` on the server (`chmod 600`), never in git; deploy keys are read-only and per repository |
 | Supply chain | Exact Python dependency pins; pinned Traefik, Ollama and nginx images; rebuilding produces what the tests passed on |
-| Host compromise | UFW allows 22/80/443 only; fail2ban on SSH; unattended security upgrades; Docker logs rotated (10 MB x 3) |
+| Host compromise | UFW allows 22/80/443 (plus the private Tailscale interface) only; SSH accepts keys only, no passwords (`/etc/ssh/sshd_config.d/00-naveenlabs-hardening.conf`); fail2ban on SSH; unattended security upgrades; Docker logs rotated (10 MB x 3) |
+| Admin consoles exposed | Portainer and Uptime Kuma have no public address; `tailscale serve` publishes them only on the tailnet, with valid certificates |
+| The chat model starving other apps | Ollama is capped at 3 of 4 cores and 6 GB, so a reply always leaves a core for the trading apps |
 | Policy complaints (hosting terms) | No third-party brand names in hostnames or page copy (enforced by a test); Trust does not name or grade other people's projects unless `TRUST_THIRD_PARTY=1`; every page states it is an independent project |
 
 ### Known gaps (decided or pending)
 
-- **SSH allows root login with a password.** Fix: key-only login (`PasswordAuthentication no`,
-  `PermitRootLogin prohibit-password`). Pending the owner's go-ahead, because a mistake locks the owner out.
+- SSH is key-only since 2026-10-03, with a single authorized key (the owner's laptop). Losing that key means using the
+  hosting provider's browser console to get back in; keep a backup of the key.
 - Traefik and Portainer mount the Docker socket. Read-only mounts do not limit the Docker API, so a compromise of
   either is a host compromise. Standard for this setup; both are kept updated deliberately, and Portainer is not
   public.
@@ -176,7 +179,27 @@ downtime would need two copies behind the proxy (blue/green); not worth it at th
 - **Health checks:** every web container has a Docker health check.
 - **Logs:** the worker logs JSON; Docker keeps 30 MB per container.
 - **Admin page** (`/admin`, owner only): job queue, dead letters, model quota, review decisions.
-- **Uptime Kuma** (private) is installed for richer monitoring once its admin account is set up.
+- **Uptime Kuma** (private, over Tailscale): 7 HTTP monitors (every public site, every 60 s, with certificate-expiry
+  checks) and 3 heartbeat monitors (the Trust, Radar and Blueprints workers push to
+  `http://uptime-kuma:3001/api/push/<token>`, set as `KUMA_PUSH_URL`; silence for ~30 min marks a worker down).
+  Alert delivery (email or Telegram) is not configured yet: the dashboard and the external probe are the alerts.
+- **Lesson (2026-10-04):** Kuma's first check found Web3 down for ~13 h. uvicorn 0.27 does not respawn workers retired by
+  `limit_max_requests`, so the app went dark once each worker had served 1000 requests. Never set
+  `limit_max_requests` on uvicorn < 0.30 (Web3 has a regression test).
+
+### Private access (Tailscale)
+
+The server is on the owner's Tailscale network as `naveenlabs-vps` (`100.x.y.z`, tailnet `example-tailnet.ts.net`).
+Only devices signed in to that account can reach it this way; nothing here has a public address.
+
+| Console | Address |
+|---|---|
+| Uptime Kuma | https://naveenlabs-vps.example-tailnet.ts.net:10000 |
+| Portainer | https://naveenlabs-vps.example-tailnet.ts.net:8443 |
+
+Port 443 on the tailnet address belongs to Traefik (it runs on the host network), so `tailscale serve` uses 8443 and
+10000. Tailscale was installed from its official apt repository with `--accept-dns=false`, so the server's own DNS
+(and certificate issuance) is untouched.
 
 ### Change policy
 
