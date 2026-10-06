@@ -5,18 +5,23 @@
 <p>Each audit reads one repository at one commit, extracts its tool definitions and runs deterministic rules. An AI reviewer may confirm or dismiss rule findings with a reason code, and may add findings only when it quotes the source verbatim. Code, not the model, computes the score.</p>
 <h2>Score</h2>
 <p>A finding costs its category <span class="mono">severity points × confidence factor</span>. One rule can cost a category at most {{ m.rule_cap_multiplier }}× its severity points. Categories start at 100; the total is their weighted mean.</p>
-<table>
-  <tr><th>severity</th><th>points</th></tr>
-  {% for k, v in m.severity_points.items() %}<tr><td>{{ k }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+<div class="score-tables">
+<table class="kv">
+  <colgroup><col><col class="kv-value"></colgroup>
+  <tr><th>severity</th><th class="num">points</th></tr>
+  {% for k, v in m.severity_points.items() %}<tr><td>{{ k }}</td><td class="mono num">{{ v }}</td></tr>{% endfor %}
 </table>
-<table>
-  <tr><th>confidence</th><th>factor</th></tr>
-  {% for k, v in m.confidence_factor.items() %}<tr><td>{{ k }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+<table class="kv">
+  <colgroup><col><col class="kv-value"></colgroup>
+  <tr><th>confidence</th><th class="num">factor</th></tr>
+  {% for k, v in m.confidence_factor.items() %}<tr><td>{{ k }}</td><td class="mono num">{{ v }}</td></tr>{% endfor %}
 </table>
-<table>
-  <tr><th>category</th><th>weight</th></tr>
-  {% for k, v in m.category_weights.items() %}<tr><td>{{ k | replace("_", " ") }}</td><td class="mono">{{ v }}</td></tr>{% endfor %}
+<table class="kv">
+  <colgroup><col><col class="kv-value"></colgroup>
+  <tr><th>category</th><th class="num">weight</th></tr>
+  {% for k, v in m.category_weights.items() %}<tr><td>{{ k | replace("_", " ") }}</td><td class="mono num">{{ v }}</td></tr>{% endfor %}
 </table>
+</div>
 <p>Grades: {% for b in m.grade_bands %}{{ b.grade }} ≥ {{ b.min }}, {% endfor %}otherwise F. Any critical finding caps the grade at {{ m.critical_cap }}.</p>
 <h2>Rules</h2>
 <table>

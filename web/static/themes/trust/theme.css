@@ -89,3 +89,12 @@
   .flow { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) { .caps { grid-template-columns: 1fr; } }
+
+/* Methodology: the three score tables as equal cards side by side; values right-aligned in a fixed column. */
+.score-tables { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; margin: 20px 0 8px; }
+.score-tables .kv { table-layout: fixed; display: table; }
+.score-tables .kv .kv-value { width: 34%; }
+.score-tables .kv th, .score-tables .kv td { padding: 11px 16px; }
+.score-tables .kv .num { text-align: right; }
+@media (max-width: 900px) { .score-tables { grid-template-columns: 1fr; } }
+.planet-trust td.mono:first-child { white-space: nowrap; }
