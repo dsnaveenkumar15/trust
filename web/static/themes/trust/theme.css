@@ -1,0 +1,91 @@
+/* Trust: security console. Loaded after site.css on Trust pages only. Cool slate, sans-led with mono evidence,
+   rounded panels with soft depth, severity colours. Token blocks first (contract checked by tests/test_themes.py). */
+@font-face { font-family: "IBM Plex Sans"; src: url("/static/themes/trust/fonts/ibm-plex-sans-latin.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/static/themes/trust/fonts/ibm-plex-mono-latin-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/static/themes/trust/fonts/ibm-plex-mono-latin-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+
+.planet-trust {
+  --bg: #F6F8FA; --surface: #FFFFFF; --surface-2: #EEF2F5; --ink: #0D1722; --ink-2: #2F3A46; --muted: #57606A;
+  --rule: rgba(13, 23, 34, 0.09); --rule-2: rgba(13, 23, 34, 0.16); --field: rgba(13, 23, 34, 0.24);
+  --accent: #087A4E; --accent-ink: #FFFFFF; --accent-soft: #E3F2EB;
+  --ok: #087A4E; --ok-soft: #E3F2EB; --warn: #9A6700; --warn-soft: #FBF1D9; --bad: #CF222E; --bad-soft: #FCE8E9;
+  --mark: #FFE7A3;
+  --sev-critical: #CF222E; --sev-high: #A84300; --sev-medium: #875A00; --sev-low: #57606A; --sev-high-soft: #FDEBDD;
+  --shadow-1: 0 1px 2px rgba(13, 23, 34, 0.06);
+  --shadow-2: 0 1px 2px rgba(13, 23, 34, 0.06), 0 16px 36px -14px rgba(13, 23, 34, 0.22);
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --display: "IBM Plex Sans", system-ui, sans-serif;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 14px;
+}
+:root[data-theme="dark"] .planet-trust {
+  --bg: #0B1118; --surface: #111A24; --surface-2: #16212D; --ink: #E6EDF3; --ink-2: #C2CDD8; --muted: #8B98A5;
+  --rule: rgba(230, 237, 243, 0.08); --rule-2: rgba(230, 237, 243, 0.15); --field: rgba(230, 237, 243, 0.22);
+  --accent: #3DDC97; --accent-ink: #06231A; --accent-soft: rgba(61, 220, 151, 0.13);
+  --ok: #3DDC97; --ok-soft: rgba(61, 220, 151, 0.13); --warn: #D29922; --warn-soft: rgba(210, 153, 34, 0.14);
+  --bad: #F85149; --bad-soft: rgba(248, 81, 73, 0.14); --mark: rgba(210, 153, 34, 0.32);
+  --sev-critical: #F85149; --sev-high: #F0883E; --sev-medium: #D29922; --sev-low: #8B98A5; --sev-high-soft: rgba(240, 136, 62, 0.16);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.45), 0 22px 44px -18px rgba(0, 0, 0, 0.7);
+}
+
+/* Type: sans for everything, mono for evidence, rules, versions. */
+.planet-trust { font-family: var(--sans); }
+.planet-trust h1, .planet-trust h2, .planet-trust h3 { font-family: var(--display); font-weight: 600; letter-spacing: -0.02em; }
+.planet-trust .brand { font-weight: 600; letter-spacing: -0.01em; }
+.planet-trust .brand img { border-radius: 8px; }
+.planet-trust .eyebrow { margin: 0 0 14px; font: 500 12px/1.2 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+
+/* Controls */
+.planet-trust .btn, .planet-trust button, .planet-trust input[type=submit] { border-radius: 10px; color: var(--accent-ink); }
+:root[data-theme="dark"] .planet-trust .btn, :root[data-theme="dark"] .planet-trust button, :root[data-theme="dark"] .planet-trust input[type=submit] { color: var(--accent-ink); }
+.planet-trust .btn-quiet, :root[data-theme="dark"] .planet-trust .btn-quiet { color: var(--ink); }
+.planet-trust textarea { border-radius: 12px; background-color: var(--surface); }
+
+/* Severity and grades: tinted badges in the severity colour. */
+.planet-trust .grade { border-radius: 10px; font-family: var(--sans); }
+.planet-trust .grade-A, .planet-trust .grade-B { background: var(--ok-soft); color: var(--ok); }
+.planet-trust .grade-C { background: var(--warn-soft); color: var(--sev-medium); }
+.planet-trust .grade-D { background: var(--sev-high-soft); color: var(--sev-high); }
+.planet-trust .grade-F { background: var(--bad-soft); color: var(--sev-critical); }
+.planet-trust .finding { border-left-width: 3px; border-radius: var(--r-md); background: var(--surface); box-shadow: var(--shadow-1); }
+.planet-trust .sev-critical { border-left-color: var(--sev-critical); }
+.planet-trust .sev-high { border-left-color: var(--sev-high); }
+.planet-trust .sev-medium { border-left-color: var(--sev-medium); }
+.planet-trust .sev-low { border-left-color: var(--sev-low); }
+.planet-trust .finding .mono:first-child { color: var(--ink); font-weight: 500; }
+.planet-trust .quote, .planet-trust pre { font-family: var(--mono); background: var(--surface-2); border-color: var(--rule); }
+.planet-trust .window { border-radius: var(--r-lg); }
+.planet-trust .window-head { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.planet-trust .chip-bad { background: var(--bad-soft); color: var(--sev-critical); }
+
+/* Home: the console hero. */
+.trust-hero { align-items: start; }
+.trust-hero h1 { max-width: 16ch; }
+.console-check { margin: 28px 0 0; display: grid; gap: 10px; }
+.console-check label { display: flex; align-items: center; gap: 8px; font: 500 12.5px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.console-check label .ic { width: 16px; height: 16px; color: var(--accent); }
+.console-check textarea { min-height: 132px; }
+.console-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.trust-hero #check-result:not(:empty) { margin-top: 16px; }
+.caps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 8px 0 0; padding: 0; list-style: none; }
+.caps li { max-width: none; padding: 18px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+.caps .ic { width: 26px; height: 26px; color: var(--accent); }
+.caps h3 { margin: 12px 0 6px; font-size: 16px; }
+.caps p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 8px 0 0; padding: 0; list-style: none; counter-reset: flow; }
+.flow li { counter-increment: flow; max-width: none; padding: 18px 18px 18px 58px; position: relative; background: var(--surface-2); border-radius: var(--r-lg); }
+.flow li::before { content: counter(flow, decimal-leading-zero); position: absolute; left: 18px; top: 18px; font: 500 13px var(--mono); color: var(--accent); }
+.flow h3 { margin: 0 0 4px; font-size: 16px; }
+.flow p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.policy-note { margin-top: 28px; font-size: 14px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .planet-trust #check-result .finding { animation: trust-scan 900ms ease-out both; background-image: linear-gradient(90deg, transparent, var(--accent-soft), transparent); background-size: 40% 100%; background-repeat: no-repeat; }
+  /* With a 40%-wide highlight, -100% and 200% are fully outside the card, so nothing is left behind when it ends. */
+  @keyframes trust-scan { from { background-position: -100% 0; opacity: 0.4; } to { background-position: 200% 0; opacity: 1; } }
+}
+@media (max-width: 900px) {
+  .caps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) { .caps { grid-template-columns: 1fr; } }

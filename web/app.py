@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime, timezone
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -58,6 +59,28 @@ def _wire_radar(app: FastAPI, settings: Settings, homes: dict) -> None:
     app.include_router(radar_ask.router)
     app.include_router(admin_radar.router)
     app.state.admin_sections["radar"] = admin_radar.section
+    _wire_radar_agent(app, settings)
+
+
+def _wire_radar_agent(app: FastAPI, settings: Settings) -> None:
+    from core.db import connect
+    from radar.agent import runs as agent_runs
+    from radar.agent.config import load_config
+    from radar.agent.context import make_context_factory
+    from web import radar_agent
+    app.state.agent_config = load_config()
+    app.state.agent_runner = agent_runs.Runner(settings.db_path, app.state.agent_config, make_context_factory(app, settings))
+    app.include_router(radar_agent.router)
+    try:                                                 # a restart ends runs that were in flight; old runs expire
+        conn = connect(settings.db_path)
+        try:
+            agent_runs.ensure_schema(conn)
+            agent_runs.interrupt_running(conn, time.time())
+            agent_runs.expire(conn, time.time())
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        pass                                             # the app still starts; /healthz reports the database as unready
 
 
 def _wire_blueprints(app: FastAPI, settings: Settings, homes: dict) -> None:

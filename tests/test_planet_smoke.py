@@ -42,8 +42,11 @@ def test_every_page_says_it_is_independent_and_unaffiliated(tmp_path, planet):
 def test_home_has_the_hero_and_every_page_names_its_author(tmp_path, planet):
     c = client(make_settings(tmp_path), planet)
     home, other = c.get("/"), c.get("/no-such-page")
-    assert 'class="hero"' in home.text and PLANETS[planet]["action"][1] in home.text and 'class="steps"' in home.text
-    assert "Designed and built by" in home.text and 'class="hero"' not in other.text
+    # Each app may design its own home (spec 2026-10-06 visual identity): a hero, the main action and a how-it-works
+    # sequence are the contract, not one shared template.
+    assert 'class="hero' in home.text and PLANETS[planet]["action"][1] in home.text
+    assert 'class="steps"' in home.text or 'class="flow"' in home.text
+    assert "Designed and built by" in home.text and 'class="hero' not in other.text
 
 
 def test_unknown_hosts_are_404(tmp_path):

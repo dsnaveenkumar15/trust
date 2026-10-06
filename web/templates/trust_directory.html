@@ -1,23 +1,50 @@
 {% extends "trust_base.html" %}
-{% block hero_visual %}
-<figure class="window" aria-label="Example check result">
-  <figcaption class="window-head"><span>Example check, live rules</span><span class="chip chip-bad">{{ sample.findings | length }} critical</span></figcaption>
-  <ul class="window-list">
-    {% for tool in sample.tools %}<li><code>{{ tool.name }}</code>{% if tool.flagged %}<span class="status status-bad">Flagged</span>{% else %}<span class="status status-ok">No findings</span>{% endif %}</li>{% endfor %}
-  </ul>
-  {% for f in sample.findings %}
-  <div class="window-finding">
-    <p class="finding-title"><span class="dot dot-bad" aria-hidden="true"></span>Hidden instructions in <code>{{ f.tool }}</code></p>
-    {% set parts = f.quote.split("<IMPORTANT>", 1) %}
-    <pre class="quote">{% if parts | length == 2 %}{{ parts[0] | trim }} <mark>&lt;IMPORTANT&gt;{{ parts[1] | replace('",', '') }}</mark>{% else %}{{ f.quote }}{% endif %}</pre>
-    <p class="finding-note">Tells the agent to read your SSH key and hide it from you.</p>
+{% block hero %}
+<section class="hero trust-hero" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <p class="eyebrow">Evidence-based grades for agent tools</p>
+    <h1 id="hero-title">{{ meta.headline }}</h1>
+    <p class="lede">{{ meta.lede }}</p>
+    <form id="check-form" class="console-check">
+      <label for="manifest"><svg class="ic" aria-hidden="true"><use href="/static/themes/trust/icons.svg#i-paste"/></svg>Paste a tools/list JSON</label>
+      <textarea id="manifest" name="manifest" required placeholder='{"tools": [{"name": "add", "description": "Adds two numbers."}]}'></textarea>
+      <div class="console-actions"><button type="submit">Check now</button><a class="btn btn-quiet" href="/methodology">How grades work</a></div>
+    </form>
+    <div id="check-result" aria-live="polite"></div>
+    <p class="byline">Designed and built by <a href="https://naveenlabs.tech">Naveenkumar Dhamodharan</a></p>
   </div>
-  {% endfor %}
-</figure>
+  <div class="hero-visual">
+    <figure class="window" aria-label="Example check result">
+      <figcaption class="window-head"><span>Example check, live rules</span><span class="chip chip-bad">{{ sample.findings | length }} critical</span></figcaption>
+      <ul class="window-list">
+        {% for tool in sample.tools %}<li><code>{{ tool.name }}</code>{% if tool.flagged %}<span class="status status-bad">Flagged</span>{% else %}<span class="status status-ok">No findings</span>{% endif %}</li>{% endfor %}
+      </ul>
+      {% for f in sample.findings %}
+      <div class="window-finding">
+        <p class="finding-title"><span class="dot dot-bad" aria-hidden="true"></span>Hidden instructions in <code>{{ f.tool }}</code></p>
+        {% set parts = f.quote.split("<IMPORTANT>", 1) %}
+        <pre class="quote">{% if parts | length == 2 %}{{ parts[0] | trim }} <mark>&lt;IMPORTANT&gt;{{ parts[1] | replace('",', '') }}</mark>{% else %}{{ f.quote }}{% endif %}</pre>
+        <p class="finding-note">Tells the agent to read your SSH key and hide it from you.</p>
+      </div>
+      {% endfor %}
+    </figure>
+  </div>
+</section>
 {% endblock %}
 {% block content %}
+<h2 class="section-title">What every check reads for</h2>
+<ul class="caps">
+  <li><svg class="ic" aria-hidden="true"><use href="/static/themes/trust/icons.svg#i-eye"/></svg><h3>Hidden instructions</h3><p>Text in a tool description that tells the agent to do something you did not ask for, or to hide it from you.</p></li>
+  <li><svg class="ic" aria-hidden="true"><use href="/static/themes/trust/icons.svg#i-layers"/></svg><h3>Tool shadowing</h3><p>Descriptions that try to change how the agent uses your other tools.</p></li>
+  <li><svg class="ic" aria-hidden="true"><use href="/static/themes/trust/icons.svg#i-ghost"/></svg><h3>Invisible characters</h3><p>Zero-width text that a person reading the description cannot see.</p></li>
+  <li><svg class="ic" aria-hidden="true"><use href="/static/themes/trust/icons.svg#i-terminal"/></svg><h3>Risky capabilities</h3><p>Shell commands, dynamic code, reads of SSH or cloud credential files, calls to hard-coded addresses.</p></li>
+</ul>
+<h2 class="section-title">How a check works</h2>
+<ol class="flow">
+  {% for title, text in meta.steps %}<li><h3>{{ title }}</h3><p>{{ text }}</p></li>{% endfor %}
+</ol>
 {% if total %}
-<h2>Published reviews</h2>
+<h2 class="section-title">Published reviews</h2>
 <form method="get" action="/" class="filters">
   <input type="text" name="q" value="{{ q }}" placeholder="search owner/repo" aria-label="Search repositories">
   <select name="grade" aria-label="Grade">
@@ -45,15 +72,7 @@
 <p class="muted">No servers match.</p>
 {% endif %}
 {% else %}
-<section class="explainer">
-  <h2>What a check looks for</h2>
-  <ul class="checklist">
-    <li><strong>Hidden instructions</strong> Text in a tool description that tells the agent to do something you did not ask for, or to hide it from you.</li>
-    <li><strong>Tool shadowing</strong> Descriptions that try to change how the agent uses your other tools.</li>
-    <li><strong>Invisible characters</strong> Zero-width text that a person reading the description cannot see.</li>
-    <li><strong>Risky capabilities</strong> Shell commands, dynamic code, reads of SSH or cloud credential files, calls to hard-coded addresses.</li>
-  </ul>
-  <p class="muted">This directory does not list other people's projects. Checks run on what you paste, and nothing is stored.</p>
-</section>
+<p class="policy-note">This directory does not list other people's projects. Checks run on what you paste, and nothing is stored.</p>
 {% endif %}
+<script src="/static/trust-check.js"></script>
 {% endblock %}

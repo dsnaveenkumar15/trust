@@ -1,6 +1,7 @@
 /* Light / dark theme for every naveenlabs site. Loaded in <head> (no inline script: the CSP forbids it), so the
    theme is set before the page paints. The choice lives in a cookie on .naveenlabs.tech, so it follows the visitor
-   across sites; localStorage is the fallback (local development). Default: the system setting. */
+   across sites; localStorage is the fallback (local development). Without a choice: the app's signature mode
+   (<html data-default-theme>), else the system setting. */
 (function () {
   var root = document.documentElement;
   var shared = /(^|\.)naveenlabs\.tech$/.test(location.hostname);
@@ -15,7 +16,10 @@
   }
   var theme = saved();
   if (theme !== "light" && theme !== "dark") {
-    theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // No explicit choice: the app's signature mode, then the system setting.
+    var signature = root.getAttribute("data-default-theme");
+    theme = signature === "light" || signature === "dark" ? signature
+      : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   }
   root.setAttribute("data-theme", theme);
   document.addEventListener("click", function (event) {

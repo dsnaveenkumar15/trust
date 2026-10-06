@@ -44,6 +44,8 @@
     "tests/fixtures/claude_cli_envelope.json",
     "docs/ARCHITECTURE.md",
     "scripts/core_manifest.json",
-    "scripts/sync_core.py"
+    "scripts/sync_core.py",
+    "tests/test_themes.py",
+    "tests/test_theme_js.py"
   ]
 }

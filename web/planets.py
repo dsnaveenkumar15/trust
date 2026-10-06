@@ -5,6 +5,8 @@ PLANETS = {
         "lede": "Paste the tool list of an MCP server. Trust reads every description and shows hidden instructions, "
                 "shell access and credential reads, with the exact text that triggered each one.",
         "action": ("Check a server", "/check"), "second": ("How grades work", "/methodology"),
+        "theme": {"default": "dark", "css": "/static/themes/trust/theme.css?v=3", "mark": "/static/themes/trust/mark.svg",
+                  "preload": ["/static/themes/trust/fonts/ibm-plex-sans-latin.woff2"]},
         "steps": [("Paste the tool list", "Copy the JSON your server returns for tools/list."),
                   ("Every description is read", "Rules look for hidden instructions, tool shadowing, invisible "
                                                 "characters and risky capabilities."),
@@ -17,6 +19,8 @@ PLANETS = {
         "lede": "Radar follows the releases of the libraries AI apps are built on and tells you which breaking "
                 "changes, deprecations and advisories sit between your versions and the latest.",
         "action": ("Check my dependencies", "/upgrade"), "second": ("Ask about a change", "/ask"),
+        "theme": {"default": "dark", "css": "/static/themes/radar/theme.css?v=5", "mark": "/static/themes/radar/mark.svg",
+                  "preload": ["/static/themes/radar/fonts/jetbrains-mono-latin.woff2"]},
         "steps": [("Paste your dependency file", "requirements.txt, package.json or a lock file. It is read in your "
                                                  "browser."),
                   ("Versions are compared", "Your pinned versions are matched against every release Radar has "

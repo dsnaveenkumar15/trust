@@ -283,3 +283,32 @@ ol, ul { padding-left: 22px; }
   .spec { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* Upgrade agent */
+.agent-form { display: grid; gap: 10px; max-width: 720px; margin: 24px 0; }
+.agent-form details { margin-top: 6px; }
+.agent-avail.is-on { color: var(--ok); }
+.agent-avail.is-off { color: var(--warn); }
+.agent-showcases { padding-left: 18px; }
+.agent-top { display: flex; gap: 20px; flex-wrap: wrap; font-variant-numeric: tabular-nums; color: var(--muted); margin: 16px 0; }
+.agent-map { width: 100%; height: auto; margin: 8px 0 24px; }
+.map-node rect { fill: var(--surface-2); stroke: var(--rule-2); transition: fill 0.2s, stroke 0.2s; }
+.map-node text { font: 500 12px var(--sans); fill: var(--ink-2); text-anchor: middle; }
+.map-node.is-done rect { fill: var(--accent-soft); stroke: var(--accent); }
+.map-node.is-active rect { fill: var(--accent); stroke: var(--accent); }
+.map-node.is-active text { fill: var(--accent-ink); }
+.agent-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+.agent-board { display: grid; gap: 8px; margin-bottom: 16px; }
+.agent-card { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); }
+.agent-card[data-status="verified"] { border-color: var(--bad); }
+.agent-card[data-status="dismissed"], .agent-card[data-status="dropped"] { opacity: 0.7; }
+.agent-card .card-status, .agent-card .card-where { font-size: 13px; color: var(--muted); }
+.agent-trace { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 14px; }
+.trace-ok { color: var(--ok); }
+.trace-bad { color: var(--bad); }
+.agent-path { margin: 0 0 16px; }
+.agent-diff { font-size: 12.5px; overflow-x: auto; }
+@media (max-width: 900px) { .agent-cols { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .map-node rect { transition: none; } }
+.trace-plan { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.trace-plan .chip { height: auto; min-height: 24px; padding: 4px 10px; white-space: normal; line-height: 1.35; border-radius: 12px; }

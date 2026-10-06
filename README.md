@@ -67,6 +67,10 @@ $env:PUBLIC_SCHEME="http"; $env:PUBLIC_PORT=":8000"
 
 Then open http://trust.localhost:8000 (directory), `/check` (manifest check and BYOK) and `/methodology`.
 
+- **Look:** Trust has its own theme pack in `web/static/themes/trust/` (security console: cool slate, IBM Plex, shield
+  mark, severity colours, dark by default). The home is a console with the working checker beside the live-rules
+  example; the published directory appears below it when there is one.
+
 ## Deploy (VPS)
 
 1. DNS A record `trust` pointing at the VPS IP; Traefik runs on the VPS.

@@ -81,6 +81,18 @@ Everything runs on one VPS (Ubuntu, Docker Compose), behind one reverse proxy.
 - "Bring your own key" features call the model provider from the visitor's browser; the key never reaches the
   server, and only those pages allow a connection to the provider.
 
+### Upgrade agent (Radar)
+
+An agent with a bounded loop, built so each model call is cheap to distrust. A LangGraph graph runs deterministic steps
+in Python (dependency parsing, grounding in Radar's published API changes, a Python and TypeScript usage index) and
+three bounded model steps (plan, investigate with read-only tools, write the report). Model calls go through one gateway
+that tries a backup model, reads cost from the provider response and checks per-run budgets before every call. A code
+verifier drops any finding whose quoted evidence is not on the cited line of the candidate's own file. Runs write every
+event to SQLite, so the browser can follow a live run, resume after a reload, or replay a recorded one; limits are checked
+and the run created under one write lock. The daily spend cap ($1.00) and an admin kill switch stop live runs; replays
+keep working. Repo content is untrusted: it is fenced in prompts, the tools can only read the fetched snapshot, and
+nothing from the repository is ever executed.
+
 ### Storage
 
 - SQLite in WAL mode with a 30 s busy timeout, one database per app in that app's volume. One writer process per
