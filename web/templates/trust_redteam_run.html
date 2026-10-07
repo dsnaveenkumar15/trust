@@ -14,6 +14,7 @@
   <p class="muted">This run's result, not a published Trust grade.{% if view.victims | length > 1 %} The grade is the worst case across the models.{% endif %}{% if view.grade_note %} {{ view.grade_note }}{% endif %}</p>
   {% if view.victims | length > 1 %}<p class="rt-grades">{% for v in view.victims %}{{ v.label }}: <strong>{{ v.grade or "none" }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
   {% else %}<p class="notice">No grade: {{ view.grade_note }}</p>{% endif %}
+  <p class="muted">Each attack is tried once per model, and a model does not always behave the same way twice, so a run is a sample, not a guarantee.</p>
   {% for n in view.notes %}<p class="muted">{{ n }}</p>{% endfor %}
   <p><a href="/redteam/r/{{ run.id }}.md">Download Markdown</a> · <a href="/redteam/r/{{ run.id }}.json">Download the regression pack (JSON)</a></p>
   {% for s in view.scenarios %}

@@ -113,3 +113,10 @@ def test_a_two_victim_run_shows_both_models_and_never_a_model_name(tmp_path, mon
     html = c.get(f"/redteam/r/{rid}").text
     assert "Careful model" in html and "Small model" in html and "secret-model-name" not in html
     assert "tiny/secret-model-name" in json.dumps(c.get(f"/redteam/r/{rid}.json").json())
+
+
+def test_the_report_says_each_attack_is_one_try_per_model_and_results_can_vary(app):
+    c = client(app)
+    rid = start(c).json()["id"]
+    wait(app, rid)
+    assert "once per model" in c.get(f"/redteam/r/{rid}").text
