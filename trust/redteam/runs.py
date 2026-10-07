@@ -81,7 +81,8 @@ def make_work(get_config, get_factory, get_github, rng_factory=None):
             return "stopped", {"reason": str(exc)}
         locked_emit("node", {"name": "fetch", "status": "end"})
         gw = make_gateway(cfg, conn, run_id, locked_emit, get_factory(cfg), lock)
-        ctx = graph.Context(gateway=gw, emit=locked_emit, drift=lambda t: drift.changes(conn, t), rng=rng_factory())
+        ctx = graph.Context(gateway=gw, emit=locked_emit, drift=lambda t: drift.changes(conn, t), rng=rng_factory(),
+                            only=inp.get("only"), fixcheck=inp.get("fixcheck", True))   # set by the eval only; the web layer never copies them
         result = graph.run(ctx, target)
         locked_emit("result", {"headline": result["headline"], "grade": result["grade"]})
         return "done", result

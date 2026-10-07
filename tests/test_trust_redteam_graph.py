@@ -164,3 +164,25 @@ def test_database_operations_from_parallel_scenarios_never_overlap_on_the_shared
     model = FakeModel(analyst=[PICKS], victim=leaky)
     status, _ = runs.make_work(lambda: cfg, lambda cfg: (lambda name: model), lambda conn: None, lambda: random.Random(2))(conn, rid, emit)
     assert status == "done" and state["max"] == 1
+
+
+def test_a_run_can_be_limited_to_one_scenario_and_skip_the_fix_check():
+    c = ctx(FakeModel(analyst=[PICKS], victim=leaky))
+    c.only, c.fixcheck = "hide-from-user", False
+    r = graph.run(c, T)
+    assert [s["id"] for s in r["scenarios"]] == ["hide-from-user"] and r["scenarios"][0]["verdict"] == "got_through"
+    assert r["scenarios"][0]["fix_verdict"] is None
+
+
+def test_work_passes_server_side_run_options_but_the_web_form_cannot_set_them(tmp_path):
+    conn = connect(str(tmp_path / "r.db"))
+    runs.STORE.ensure_schema(conn)
+    text = json.dumps({"tools": [{"name": t.name, "description": t.description} for t in T.tools]})
+    rid = runs.STORE.create_run(conn, {"kind": "manifest", "text": text, "consent": True, "only": "hide-from-user", "fixcheck": False},
+                                "new", "ip", 1.0)
+    cfg = runs.load_config(ENV)
+    model = FakeModel(analyst=[PICKS], victim=leaky)
+    status, result = runs.make_work(lambda: cfg, lambda cfg: (lambda name: model), lambda conn: None, lambda: random.Random(2))(conn, rid, lambda t, p: None)
+    assert status == "done" and [s["id"] for s in result["scenarios"]] == ["hide-from-user"]
+    from web.trust_redteam import StartRun
+    assert "only" not in StartRun.model_fields and "fixcheck" not in StartRun.model_fields

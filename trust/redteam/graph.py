@@ -32,6 +32,8 @@ class Context:
     drift: Callable
     rng: object
     parallel: int = 3
+    only: str | None = None                  # attack just this scenario id (the lean launch gate); the web form cannot set it
+    fixcheck: bool = True                    # re-run each success with the suggested fix
     lock: threading.Lock = field(default_factory=threading.Lock)
 
 
@@ -68,6 +70,8 @@ def build_graph(ctx: Context):
 
     def choose(state):
         picks, source = analyst.pick(ctx.gateway, state["target"], state["reach"])
+        if ctx.only:
+            picks = [p for p in picks if p.scenario == ctx.only]
         return {"picks": picks, "analyst": source}
 
     def attack(state):
@@ -114,7 +118,8 @@ def build_graph(ctx: Context):
         return {"result": result}
 
     def after_attack(state):
-        return "fixcheck" if any(s["verdict"] in ("got_through", "partial") for s in state["scenarios"]) else "report"
+        again = ctx.fixcheck and any(s["verdict"] in ("got_through", "partial") for s in state["scenarios"])
+        return "fixcheck" if again else "report"
 
     g = StateGraph(State)
     for name, fn in (("facts", facts), ("choose", choose), ("attack", attack), ("fixcheck", fixcheck), ("report", report)):
