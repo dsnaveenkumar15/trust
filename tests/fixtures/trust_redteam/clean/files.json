@@ -1,0 +1,32 @@
+{
+  "expect": null,
+  "tools": [
+    {
+      "name": "notes_read",
+      "description": "Returns the text of one saved note.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "notes_write",
+      "description": "Saves a note under a title.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

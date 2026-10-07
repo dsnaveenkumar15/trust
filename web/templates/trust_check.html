@@ -3,6 +3,7 @@
 {% block content %}
 <h1>Check a tool manifest</h1>
 <p>Paste the JSON your MCP server returns for <span class="mono">tools/list</span>. The description rules run instantly; nothing is stored.</p>
+<p class="muted">Want proof, not just rules? <a href="/redteam">Red-team these tools</a> in a sandbox.</p>
 <form id="check-form">
   <textarea name="manifest" aria-label="Tool manifest JSON" placeholder='{"tools": [{"name": "add", "description": "Adds two numbers."}]}' required></textarea>
   <p><button type="submit">Check</button></p>

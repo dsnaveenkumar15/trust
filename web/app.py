@@ -41,6 +41,33 @@ def _wire_trust(app: FastAPI, settings: Settings, homes: dict) -> None:
     app.include_router(trust_site.router)
     app.include_router(trust_check.router)
     app.include_router(trust_byok.router)
+    _wire_redteam(app, settings)
+
+
+def _wire_redteam(app: FastAPI, settings: Settings) -> None:
+    import os
+
+    from core.agent.gateway import chat_factory
+    from core.agent.runs import Runner
+    from core.github import GitHub
+    from trust.redteam import runs as rt_runs
+    from web import trust_redteam
+    app.state.redteam_config = rt_runs.load_config()
+    factory = lambda cfg: getattr(app.state, "redteam_factory", None) or chat_factory(cfg)  # noqa: E731  tests set redteam_factory
+    github = lambda conn: getattr(app.state, "redteam_github", None) or GitHub(conn, token=os.environ.get("GITHUB_TOKEN") or None)  # noqa: E731
+    work = rt_runs.make_work(lambda: app.state.redteam_config, factory, github)
+    app.state.redteam_runner = Runner(settings.db_path, app.state.redteam_config, rt_runs.STORE, work, rt_runs.error_text)
+    app.include_router(trust_redteam.router)
+    try:                                                 # a restart ends runs that were in flight; old runs expire
+        conn = connect(settings.db_path)
+        try:
+            rt_runs.STORE.ensure_schema(conn)
+            rt_runs.STORE.interrupt_running(conn, time.time())
+            rt_runs.STORE.expire(conn, time.time())
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        pass
 
 
 def _wire_radar(app: FastAPI, settings: Settings, homes: dict) -> None:

@@ -1,0 +1,17 @@
+{
+  "expect": null,
+  "tools": [
+    {
+      "name": "exec_in_sandbox",
+      "description": "Runs the shell command the user typed in an isolated container and returns its output.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

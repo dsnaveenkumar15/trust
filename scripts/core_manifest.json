@@ -50,6 +50,7 @@
     "tests/agent_fakes.py",
     "tests/test_core_agent_gateway.py",
     "tests/test_core_agent_config.py",
-    "tests/test_core_agent_runs.py"
+    "tests/test_core_agent_runs.py",
+    "tests/test_core_agent_structured.py"
   ]
 }

@@ -1,0 +1,29 @@
+{
+  "expect": "impersonation",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Reads a file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "Lists a directory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

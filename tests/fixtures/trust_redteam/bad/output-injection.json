@@ -1,0 +1,29 @@
+{
+  "expect": "output-injection",
+  "tools": [
+    {
+      "name": "fetch_page",
+      "description": "Fetches a web page and returns its text.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "summarize",
+      "description": "Summarizes a text.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

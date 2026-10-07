@@ -1,0 +1,23 @@
+{
+  "expect": null,
+  "tools": [
+    {
+      "name": "draft_email",
+      "description": "Creates an email draft for the user to review; it is never sent from here.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

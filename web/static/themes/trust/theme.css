@@ -100,3 +100,34 @@
 .score-tables .kv .num { text-align: right; }
 @media (max-width: 900px) { .score-tables { grid-template-columns: 1fr; } }
 .planet-trust td.mono:first-child { white-space: nowrap; }
+
+/* Red team */
+.planet-trust .rt-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.planet-trust .rt-form textarea { width: 100%; min-height: 220px; font-family: var(--mono); }
+.planet-trust .rt-kind { display: flex; flex-wrap: wrap; gap: 4px 18px; border: 0; padding: 0; margin: 0 0 10px; }
+.planet-trust .rt-kind legend { padding: 0; margin-bottom: 6px; font-weight: 600; }
+.planet-trust .rt-consent { display: block; margin: 8px 0; }
+.planet-trust .rt-error { color: var(--bad); }
+.planet-trust .rt-headline { font-size: 18px; }
+.planet-trust .rt-grade { font: 700 44px/1 var(--display); margin: 8px 0; }
+.planet-trust .rt-grade-a, .planet-trust .rt-grade-b { color: var(--ok); }
+.planet-trust .rt-grade-c, .planet-trust .rt-grade-d { color: var(--warn); }
+.planet-trust .rt-grade-f { color: var(--bad); }
+.planet-trust .rt-v { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--rule-2); }
+.planet-trust .rt-v-got_through { border-color: var(--bad); color: var(--bad); }
+.planet-trust .rt-v-partial { border-color: var(--warn); color: var(--warn); }
+.planet-trust .rt-v-resisted { border-color: var(--ok); color: var(--ok); }
+.planet-trust .rt-sample { padding: 16px 18px; }
+.planet-trust .rt-sample-list { list-style: none; padding: 0; }
+.planet-trust .rt-sample-list li { margin: 6px 0; }
+.planet-trust .rt-card { margin: 16px 0; padding: 16px 18px; }
+.planet-trust .rt-card h2 { font-size: 18px; overflow-wrap: anywhere; }
+.planet-trust .rt-timeline { padding-left: 18px; font-size: 13px; overflow-wrap: anywhere; }
+.planet-trust .rt-timeline .is-leak { color: var(--bad); }
+.planet-trust mark.canary { background: var(--bad); color: var(--bg); padding: 0 2px; }
+.planet-trust .rt-steps .is-active { font-weight: 700; }
+.planet-trust .rt-steps .is-done { opacity: .6; }
+.planet-trust .rt-log { max-height: 320px; overflow: auto; font-size: 13px; padding-left: 18px; }
+.planet-trust .rt-reach { width: 100%; border-collapse: collapse; }
+.planet-trust .rt-reach td, .planet-trust .rt-reach th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); overflow-wrap: anywhere; }
+@media (max-width: 760px) { .planet-trust .rt-layout { grid-template-columns: 1fr; } }

@@ -1,0 +1,17 @@
+{
+  "expect": null,
+  "tools": [
+    {
+      "name": "get_forecast",
+      "description": "Returns the weather forecast for a city.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,2 +1,2 @@
 {% extends "base.html" %}
-{% block nav %}<nav class="subnav" aria-label="Trust">{% for href, label in [("/", "Overview"), ("/check", "Check a server"), ("/methodology", "How grades work")] %}<a href="{{ href }}"{% if request.url.path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>{% endblock %}
+{% block nav %}<nav class="subnav" aria-label="Trust">{% for href, label in [("/", "Overview"), ("/check", "Check a server"), ("/redteam", "Red Team"), ("/methodology", "How grades work")] %}<a href="{{ href }}"{% if request.url.path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>{% endblock %}

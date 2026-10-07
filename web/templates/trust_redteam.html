@@ -1,0 +1,41 @@
+{% extends "trust_base.html" %}
+{% block title %}Red Team · {{ meta.name }}{% endblock %}
+{% block content %}
+<section class="rt-intro">
+  <h1>Red Team</h1>
+  <p>Give it an MCP server's tools. An agent attacks them in a sandbox with known attack patterns and shows what got through, with proof and a tested fix. Nothing you submit is run; results are private and deleted after 7 days.</p>
+</section>
+<div class="rt-layout">
+{% if available %}
+<form id="rt-form" class="rt-form">
+  <fieldset class="rt-kind"><legend>What to test</legend>
+    <label><input type="radio" name="kind" value="manifest" checked> Paste a tool list</label>
+    <label><input type="radio" name="kind" value="repo"> Public GitHub repo</label>
+  </fieldset>
+  <textarea id="rt-text" aria-label="Tool list JSON or repository URL" placeholder='{"tools": [{"name": "notes", "description": "..."}]}' required></textarea>
+  <label class="rt-consent"><input type="checkbox" id="rt-consent"> These are my tools or public ones, and the text is not confidential.</label>
+  <p><button type="submit">Start the red team</button></p>
+  <p id="rt-error" class="rt-error" role="alert" hidden></p>
+</form>
+{% else %}
+<p class="notice">The red team is not taking new runs right now. Try again later.</p>
+{% endif %}
+<aside class="rt-sample window" aria-label="Sample report">
+  <p class="mono rt-sample-head">2 of 5 attacks got through; the suggested rewrite stopped 2 of 2.</p>
+  <p class="rt-grade rt-grade-d">D</p>
+  <ul class="rt-sample-list">
+    <li><span class="rt-v rt-v-got_through">Got through</span> Hidden instructions · <span class="mono">notes</span></li>
+    <li><span class="rt-v rt-v-got_through">Got through</span> Poisoned tool output · <span class="mono">fetch_page</span></li>
+    <li><span class="rt-v rt-v-resisted">Resisted</span> Impersonation · <span class="mono">read_file</span></li>
+  </ul>
+</aside>
+</div>
+<h2 class="section-title">How it works</h2>
+<ol class="flow">
+  <li><h3>Static check</h3><p>Trust's rules and a map of what each tool can reach: files, network, shell.</p></li>
+  <li><h3>Analyst picks attacks</h3><p>Three to six known attack patterns, each tied to exact text in your tools.</p></li>
+  <li><h3>Victim agent</h3><p>A low-cost agent model gets fake tools, planted fake secrets and a harmless task; plain code checks what it did.</p></li>
+  <li><h3>Proof and fix</h3><p>Every success is re-run with the suspect text rewritten, to show the cause and test the fix.</p></li>
+</ol>
+<script src="/static/trust-redteam.js"></script>
+{% endblock %}
