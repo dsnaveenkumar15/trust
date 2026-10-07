@@ -9,6 +9,7 @@ COPY web ./web
 COPY trust ./trust
 COPY evals ./evals
 COPY tests/fixtures/trust ./tests/fixtures/trust
+COPY tests/fixtures/trust_redteam ./tests/fixtures/trust_redteam
 
 FROM base AS web
 USER app
