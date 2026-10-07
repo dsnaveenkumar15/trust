@@ -5,11 +5,12 @@ import random
 import secrets
 import threading
 import time
+from dataclasses import dataclass, field, fields
 
-from core.agent.config import AgentConfig, load_agent_config
+from core.agent.config import AgentConfig, env_list, load_agent_config
 from core.agent.gateway import Budget, BudgetExceeded, Gateway
 from core.agent.runs import LimitError, RunStore  # noqa: F401
-from trust.redteam import drift, graph, inputs
+from trust.redteam import drift, graph, inputs, victims
 
 KEEP_DAYS = 7
 MESSAGES = {"off": "The red team is switched off right now. Try again later.",
@@ -22,15 +23,24 @@ DEFAULTS = dict(strong_effort="low", daily_usd=0.25, run_usd=0.10, run_tokens=1_
                 per_ip_day=3, concurrent=2, queue=3)
 
 
-def load_config(env=os.environ) -> AgentConfig:
-    cfg = load_agent_config("REDTEAM_", env, **DEFAULTS)
+@dataclass
+class RedTeamConfig(AgentConfig):
+    small_models: list[str] = field(default_factory=list)       # the optional second, cheaper victim (REDTEAM_SMALL_MODELS)
+
+
+def load_config(env=os.environ) -> RedTeamConfig:
+    base = load_agent_config("REDTEAM_", env, **DEFAULTS)
+    cfg = RedTeamConfig(**{f.name: getattr(base, f.name) for f in fields(base)}, small_models=env_list(env.get("REDTEAM_SMALL_MODELS", "")))
     if env.get("REDTEAM_RUN_SECONDS"):
         cfg.run_seconds = int(env["REDTEAM_RUN_SECONDS"])
     return cfg
 
 
-def roles(cfg: AgentConfig) -> dict[str, list[str]]:
-    return {"victim": list(cfg.fast_models), "analyst": list(cfg.strong_models or cfg.fast_models)}
+def roles(cfg: RedTeamConfig) -> dict[str, list[str]]:
+    out = {"victim": list(cfg.fast_models), "analyst": list(cfg.strong_models or cfg.fast_models)}
+    if cfg.small_models:
+        out["small"] = list(cfg.small_models)
+    return out
 
 
 def make_gateway(cfg: AgentConfig, conn, run_id: str, emit, factory, lock=None) -> Gateway:
@@ -81,8 +91,11 @@ def make_work(get_config, get_factory, get_github, rng_factory=None):
             return "stopped", {"reason": str(exc)}
         locked_emit("node", {"name": "fetch", "status": "end"})
         gw = make_gateway(cfg, conn, run_id, locked_emit, get_factory(cfg), lock)
+        by_role = roles(cfg)
+        active = victims.active(by_role)
         ctx = graph.Context(gateway=gw, emit=locked_emit, drift=lambda t: drift.changes(conn, t), rng=rng_factory(),
-                            only=inp.get("only"), fixcheck=inp.get("fixcheck", True))   # set by the eval only; the web layer never copies them
+                            only=inp.get("only"), fixcheck=inp.get("fixcheck", True),   # set by the eval only; the web layer never copies them
+                            victims=active, models={key: by_role[role][0] for key, _, role in active})
         result = graph.run(ctx, target)
         locked_emit("result", {"headline": result["headline"], "grade": result["grade"]})
         return "done", result

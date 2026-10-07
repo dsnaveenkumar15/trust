@@ -186,3 +186,65 @@ def test_work_passes_server_side_run_options_but_the_web_form_cannot_set_them(tm
     assert status == "done" and [s["id"] for s in result["scenarios"]] == ["hide-from-user"]
     from web.trust_redteam import StartRun
     assert "only" not in StartRun.model_fields and "fixcheck" not in StartRun.model_fields
+
+
+CAREFUL = ("careful", "Careful model", "victim")
+SMALL = ("small", "Small model", "small")
+
+
+def ctx2(careful, small, **kw):
+    from tests.trust_redteam_fakes import by_name
+    events = []
+    c = graph.Context(gateway=gateway(None, small=True, factory=by_name([PICKS], careful, small), **kw),
+                      emit=lambda t, p: events.append((t, p)), drift=lambda target: {"earlier": False}, rng=random.Random(5),
+                      victims=[CAREFUL, SMALL], models={"careful": "v", "small": "s"})
+    c.events = events
+    return c
+
+
+def test_each_attack_runs_on_both_victims_and_the_worst_case_counts():
+    c = ctx2(polite, leaky)
+    r = graph.run(c, T)
+    for s in r["scenarios"]:
+        assert [v["key"] for v in s["victims"]] == ["careful", "small"]
+        assert [v["verdict"] for v in s["victims"]] == ["resisted", "got_through"]
+        assert s["verdict"] == "got_through" and s["trace"] == s["victims"][1]["trace"]     # the worst victim speaks for the scenario
+        assert s["victims"][0]["fix_verdict"] is None and s["victims"][1]["fix_verdict"] in ("fixed", "not_fixed")
+        assert s["fix_verdict"] == s["victims"][1]["fix_verdict"]
+    assert r["grade"] == "F" and [(v["key"], v["grade"], v["model"]) for v in r["victims"]] == [("careful", "A", "v"), ("small", "F", "s")]
+    assert r["headline"].startswith("3 of 3 attacks got through on at least one model (careful model 0, small model 3)")
+    assert any(t == "scenario" and p["victims"] == {"careful": "resisted", "small": "got_through"} for t, p in c.events)
+
+
+def test_without_a_small_model_there_is_one_victim_and_nothing_changes():
+    r = graph.run(ctx(FakeModel(analyst=[PICKS], victim=leaky)), T)
+    assert all(len(s["victims"]) == 1 and s["victims"][0]["key"] == "careful" for s in r["scenarios"])
+    assert [v["key"] for v in r["victims"]] == ["careful"] and r["headline"].startswith("3 of 3 attacks got through;")
+
+
+def test_one_victim_failing_does_not_hide_the_other():
+    def down(messages, tools):
+        raise RuntimeError("provider down")
+    r = graph.run(ctx2(leaky, down), T)
+    for s in r["scenarios"]:
+        assert [v["verdict"] for v in s["victims"]] == ["got_through", "not_run"] and s["verdict"] == "got_through"
+    assert r["victims"][1]["grade"] is None and r["grade"] == "F"
+
+
+def test_work_reads_the_small_model_setting_and_runs_both_victims(tmp_path):
+    from tests.trust_redteam_fakes import by_name
+    conn = connect(str(tmp_path / "r.db"))
+    runs.STORE.ensure_schema(conn)
+    text = json.dumps({"tools": [{"name": t.name, "description": t.description} for t in T.tools]})
+    rid = runs.STORE.create_run(conn, {"kind": "manifest", "text": text, "consent": True}, "new", "ip", 1.0)
+    cfg = runs.load_config({**ENV, "REDTEAM_SMALL_MODELS": "s"})
+    assert cfg.small_models == ["s"] and runs.roles(cfg)["small"] == ["s"]
+    status, result = runs.make_work(lambda: cfg, lambda cfg: by_name([PICKS], polite, leaky), lambda conn: None,
+                                    lambda: random.Random(2))(conn, rid, lambda t, p: None)
+    assert status == "done" and [v["key"] for v in result["victims"]] == ["careful", "small"]
+    assert [v["model"] for v in result["victims"]] == ["v", "s"]
+
+
+def test_without_the_setting_the_roles_have_no_small_victim():
+    cfg = runs.load_config(ENV)
+    assert cfg.small_models == [] and "small" not in runs.roles(cfg)

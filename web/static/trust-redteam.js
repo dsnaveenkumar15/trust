@@ -62,7 +62,10 @@
     else if (e.type === "usage") {
       totals.textContent = "paid $" + Number(p.total_usd).toFixed(4) + " of $" + totals.getAttribute("data-cap") + " · " + p.total_tokens + " tokens";
     }
-    else if (e.type === "scenario") { line(p.index + ". " + p.id + " on " + p.tool + ": " + String(p.verdict).replace("_", " ")); }
+    else if (e.type === "scenario") {
+      var by = Object.keys(p.victims || {}).map(function (k) { return k + " " + String(p.victims[k]).replace("_", " "); }).join(", ");
+      line(p.index + ". " + p.id + " on " + p.tool + ": " + (by || String(p.verdict).replace("_", " ")));
+    }
     else if (e.type === "fixcheck") { line("   fix re-test for " + p.id + ": " + String(p.result).replace("_", " ")); }
     else if (e.type === "error") { line(p.text || ""); }
     else if (e.type === "result") { line(p.headline || ""); }

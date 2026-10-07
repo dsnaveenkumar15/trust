@@ -66,7 +66,7 @@ def test_a_run_finishes_privately_with_escaped_traces_and_downloads(app):
     md = c.get(f"/redteam/r/{rid}.md")
     assert md.status_code == 200 and md.text.startswith("# Red team report")
     pack = c.get(f"/redteam/r/{rid}.json").json()
-    assert pack["format"] == "redteam-pack@1"
+    assert pack["format"] == "redteam-pack@2"
 
 
 def test_an_input_problem_stops_the_run_with_the_reason(app):
@@ -100,3 +100,16 @@ def test_unknown_or_malformed_ids_are_404(app):
 def test_trust_pages_link_to_the_red_team(app):
     c = client(app)
     assert 'href="/redteam"' in c.get("/").text and 'href="/redteam"' in c.get("/check").text
+
+
+def test_a_two_victim_run_shows_both_models_and_never_a_model_name(tmp_path, monkeypatch):
+    for k, v in {**ON, "REDTEAM_SMALL_MODELS": "tiny/secret-model-name"}.items():
+        monkeypatch.setenv(k, v)
+    a = create_app(make_settings(tmp_path))
+    a.state.redteam_factory = lambda name: FakeModel(analyst=[RuntimeError("x")], victim=leaky)
+    c = client(a)
+    rid = start(c).json()["id"]
+    wait(a, rid)
+    html = c.get(f"/redteam/r/{rid}").text
+    assert "Careful model" in html and "Small model" in html and "secret-model-name" not in html
+    assert "tiny/secret-model-name" in json.dumps(c.get(f"/redteam/r/{rid}.json").json())

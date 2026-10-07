@@ -69,8 +69,10 @@ def run_case(db_path: str, work, path: Path, lean: bool, extra: bool = False) ->
     else:
         ok, agent = status == "done" and not false_alarm(result), False
     mode = "lean" if lean and data["expect"] else "full"
+    per = {v["key"]: v["verdict"] for sc in result["scenarios"] if sc["id"] == data["expect"] for v in sc.get("victims", [])}
+    shown = "  " + " ".join(f"{k}={v}" for k, v in per.items()) if per else ""
     print(f"{'ok ' if ok else 'BAD'} {kind}/{path.stem:22} {mode} ${cost:.4f} {secs:5.0f}s"
-          f"{'  by-attack' if agent else ''}{'  (extra full run)' if extra else ''}  {result.get('headline', '')}", flush=True)
+          f"{'  by-attack' if agent else ''}{'  (extra full run)' if extra else ''}{shown}  {result.get('headline', '')}", flush=True)
     return {"kind": kind, "ok": ok, "cost": cost, "secs": secs, "extra": extra}
 
 

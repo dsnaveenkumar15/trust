@@ -11,20 +11,30 @@
   <h1>Red team report</h1>
   <p class="rt-headline">{{ view.headline }}</p>
   {% if view.grade %}<p class="rt-grade rt-grade-{{ view.grade | lower }}" aria-label="Resistance grade {{ view.grade }}">{{ view.grade }}</p>
-  <p class="muted">This run's result, not a published Trust grade.{% if view.grade_note %} {{ view.grade_note }}{% endif %}</p>
+  <p class="muted">This run's result, not a published Trust grade.{% if view.victims | length > 1 %} The grade is the worst case across the models.{% endif %}{% if view.grade_note %} {{ view.grade_note }}{% endif %}</p>
+  {% if view.victims | length > 1 %}<p class="rt-grades">{% for v in view.victims %}{{ v.label }}: <strong>{{ v.grade or "none" }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
   {% else %}<p class="notice">No grade: {{ view.grade_note }}</p>{% endif %}
   {% for n in view.notes %}<p class="muted">{{ n }}</p>{% endfor %}
   <p><a href="/redteam/r/{{ run.id }}.md">Download Markdown</a> · <a href="/redteam/r/{{ run.id }}.json">Download the regression pack (JSON)</a></p>
   {% for s in view.scenarios %}
+  {% set many = s.victim_views | length > 1 %}
   <article class="rt-card window">
-    <h2><span class="rt-v rt-v-{{ s.verdict }}">{{ s.verdict_text }}</span> {{ s.title }} · <span class="mono">{{ s.tool }}</span></h2>
-    <p>Suspect text: <span class="quote">{{ s.quote }}</span></p>
+    <h2>{% for v in s.victim_views %}<span class="rt-v rt-v-{{ v.verdict }}">{% if many %}{{ v.label }}: {% endif %}{{ v.verdict_text }}</span> {% endfor %}{{ s.title }} · <span class="mono">{{ s.tool }}</span></h2>
+    <p class="rt-suspect-label">Suspect text</p>
+    <div class="quote rt-suspect">{{ s.quote }}</div>
     <p class="muted">{{ s.why }}{% if s.reason %} · {{ s.reason }}{% endif %}</p>
-    {% if s.timeline %}<ol class="rt-timeline mono">{% for c in s.timeline %}
-      <li class="{% if c.leaked %}is-leak{% endif %}">turn {{ c.turn }} · {{ c.tool }}{% if c.host %} (app){% endif %}(<span>{% for text, secret in c.parts %}{% if secret %}<mark class="canary">{{ text }}</mark>{% else %}{{ text }}{% endif %}{% endfor %}</span>){% if c.leaked %} <strong>fake secret sent</strong>{% endif %}</li>
-    {% endfor %}</ol>{% endif %}
-    {% if s.final %}<p class="muted">Victim's reply: {{ s.final }}</p>{% endif %}
-    {% if s.fix_verdict %}<p>Suggested fix re-test: <strong>{{ "stopped the attack" if s.fix_verdict == "fixed" else "did not stop it" if s.fix_verdict == "not_fixed" else "not run" }}</strong></p>
+    {% for v in s.victim_views %}
+    <section class="rt-victim">
+      {% if many %}<h3>{{ v.label }}: {{ v.verdict_text }}</h3>{% endif %}
+      {% if v.reason %}<p class="muted">{{ v.reason }}</p>{% endif %}
+      {% if v.timeline %}<ol class="rt-timeline mono">{% for c in v.timeline %}
+        <li class="{% if c.leaked %}is-leak{% endif %}">turn {{ c.turn }} · {{ c.tool }}{% if c.host %} (app){% endif %}(<span>{% for text, secret in c.parts %}{% if secret %}<mark class="canary">{{ text }}</mark>{% else %}{{ text }}{% endif %}{% endfor %}</span>){% if c.leaked %} <strong>fake secret sent</strong>{% endif %}</li>
+      {% endfor %}</ol>{% endif %}
+      {% if v.final %}<p class="muted">Reply: {{ v.final }}</p>{% endif %}
+      {% if v.fix_text %}<p>Suggested fix re-test: <strong>{{ v.fix_text }}</strong></p>{% endif %}
+    </section>
+    {% endfor %}
+    {% if s.fix_verdict %}
       {% if s.fix.description is defined %}<pre class="quote">{{ s.fix.description }}</pre>{% elif s.fix.name is defined %}<p>Rename the tool to <span class="mono">{{ s.fix.name }}</span>.</p>{% else %}<p>Mark content the tool returns as untrusted data.</p>{% endif %}
     {% endif %}
   </article>

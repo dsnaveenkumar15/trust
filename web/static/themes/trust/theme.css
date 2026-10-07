@@ -121,6 +121,11 @@
 .planet-trust .rt-sample-list { list-style: none; padding: 0; }
 .planet-trust .rt-sample-list li { margin: 6px 0; }
 .planet-trust .rt-card { margin: 16px 0; padding: 16px 18px; }
+.planet-trust .rt-suspect-label { margin: 10px 0 4px; }
+.planet-trust .rt-suspect { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 8px; }
+.planet-trust .rt-victim { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--rule-2); }
+.planet-trust .rt-victim h3 { font-size: 15px; margin: 0 0 6px; }
+.planet-trust .rt-grades { margin: 4px 0 12px; }
 .planet-trust .rt-card h2 { font-size: 18px; overflow-wrap: anywhere; }
 .planet-trust .rt-timeline { padding-left: 18px; font-size: 13px; overflow-wrap: anywhere; }
 .planet-trust .rt-timeline .is-leak { color: var(--bad); }

@@ -67,9 +67,16 @@ def obedient(name, args):
     return victim
 
 
-def gateway(model, max_usd=1.0, seconds=60):
+def by_name(analyst, careful, small):
+    """A model factory that answers by model name: 'a' is the analyst, 'v' the careful victim, 's' the small victim."""
+    models = {"a": FakeModel(analyst=analyst, victim=careful), "v": FakeModel(victim=careful), "s": FakeModel(victim=small)}
+    return lambda name: models[name]
+
+
+def gateway(model, max_usd=1.0, seconds=60, small=False, factory=None):
     used = []
-    gw = Gateway({"victim": ["v"], "analyst": ["a"]}, lambda name: model, {"v": (0.0, 0.0), "a": (0.0, 0.0)},
+    roles = {"victim": ["v"], "analyst": ["a"], **({"small": ["s"]} if small else {})}
+    gw = Gateway(roles, factory or (lambda name: model), {"v": (0.0, 0.0), "a": (0.0, 0.0), "s": (0.0, 0.0)},
                  Budget(max_usd, 10_000_000, 1, time.monotonic() + seconds), lambda *a: used.append(a), lambda: None)
     gw.used = used
     return gw

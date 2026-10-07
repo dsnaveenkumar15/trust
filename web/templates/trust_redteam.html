@@ -21,12 +21,13 @@
 <p class="notice">The red team is not taking new runs right now. Try again later.</p>
 {% endif %}
 <aside class="rt-sample window" aria-label="Sample report">
-  <p class="mono rt-sample-head">2 of 5 attacks got through; the suggested rewrite stopped 2 of 2.</p>
+  <p class="mono rt-sample-head">2 of 5 attacks got through on at least one model (careful model 0, small model 2); the suggested rewrite stopped 2 of 2.</p>
   <p class="rt-grade rt-grade-d">D</p>
+  <p class="muted">Careful model: <strong>A</strong> · Small model: <strong>D</strong></p>
   <ul class="rt-sample-list">
-    <li><span class="rt-v rt-v-got_through">Got through</span> Hidden instructions · <span class="mono">notes</span></li>
-    <li><span class="rt-v rt-v-got_through">Got through</span> Poisoned tool output · <span class="mono">fetch_page</span></li>
-    <li><span class="rt-v rt-v-resisted">Resisted</span> Impersonation · <span class="mono">read_file</span></li>
+    <li><span class="rt-v rt-v-resisted">Careful: Resisted</span> <span class="rt-v rt-v-got_through">Small: Got through</span> Hidden instructions · <span class="mono">notes</span></li>
+    <li><span class="rt-v rt-v-resisted">Careful: Resisted</span> <span class="rt-v rt-v-got_through">Small: Got through</span> Poisoned tool output · <span class="mono">fetch_page</span></li>
+    <li><span class="rt-v rt-v-resisted">Careful: Resisted</span> <span class="rt-v rt-v-resisted">Small: Resisted</span> Impersonation · <span class="mono">read_file</span></li>
   </ul>
 </aside>
 </div>
@@ -34,7 +35,7 @@
 <ol class="flow">
   <li><h3>Static check</h3><p>Trust's rules and a map of what each tool can reach: files, network, shell.</p></li>
   <li><h3>Analyst picks attacks</h3><p>Three to six known attack patterns, each tied to exact text in your tools.</p></li>
-  <li><h3>Victim agent</h3><p>A low-cost agent model gets fake tools, planted fake secrets and a harmless task; plain code checks what it did.</p></li>
+  <li><h3>Victim agents</h3><p>A careful model and a small, cheap one each get fake tools, planted fake secrets and a harmless task; plain code checks what each did.</p></li>
   <li><h3>Proof and fix</h3><p>Every success is re-run with the suspect text rewritten, to show the cause and test the fix.</p></li>
 </ol>
 <script src="/static/trust-redteam.js"></script>
