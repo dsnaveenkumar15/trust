@@ -46,6 +46,10 @@
     "scripts/core_manifest.json",
     "scripts/sync_core.py",
     "tests/test_themes.py",
-    "tests/test_theme_js.py"
+    "tests/test_theme_js.py",
+    "tests/agent_fakes.py",
+    "tests/test_core_agent_gateway.py",
+    "tests/test_core_agent_config.py",
+    "tests/test_core_agent_runs.py"
   ]
 }

@@ -35,12 +35,18 @@
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
     out.replaceChildren(el("p", "Checking…", "muted"));
-    const response = await fetch("/api/check", {
-      method: "POST",
-      headers: {"content-type": "application/json"},
-      body: JSON.stringify({manifest: form.manifest.value}),
-    });
-    const data = await response.json().catch(function () { return {}; });
+    let response, data;
+    try {
+      response = await fetch("/api/check", {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({manifest: form.manifest.value}),
+      });
+      data = await response.json().catch(function () { return {}; });
+    } catch (err) {
+      out.replaceChildren(el("p", "The check could not be reached. Check your connection and try again."));
+      return;
+    }
     if (!response.ok) {
       out.replaceChildren(el("p", typeof data.detail === "string" ? data.detail : "Check failed (" + response.status + ")"));
       return;

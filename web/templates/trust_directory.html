@@ -44,8 +44,8 @@
   {% for title, text in meta.steps %}<li><h3>{{ title }}</h3><p>{{ text }}</p></li>{% endfor %}
 </ol>
 {% if total %}
-<h2 class="section-title">Published reviews</h2>
-<form method="get" action="/" class="filters">
+<h2 class="section-title" id="reviews">Published reviews</h2>
+<form method="get" action="/#reviews" class="filters">
   <input type="text" name="q" value="{{ q }}" placeholder="search owner/repo" aria-label="Search repositories">
   <select name="grade" aria-label="Grade">
     <option value="">all grades</option>

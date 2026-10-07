@@ -11,7 +11,8 @@ COLOURS = ["bg", "surface", "surface-2", "ink", "ink-2", "muted", "rule", "rule-
            "accent-soft", "ok", "ok-soft", "warn", "warn-soft", "bad", "bad-soft", "mark"]
 MODE_FREE = ["sans", "mono", "display", "r-sm", "r-md", "r-lg", "shadow-1", "shadow-2"]
 EXTRA = {"radar": ["sig-break", "sig-depr", "sig-cve", "grid"],
-         "trust": ["sev-critical", "sev-high", "sev-medium", "sev-low", "sev-high-soft"]}
+         "trust": ["sev-critical", "sev-high", "sev-medium", "sev-low", "sev-high-soft"],
+         "blueprints": ["port", "dot"]}
 TEXT_ON = ["ink", "ink-2", "muted", "accent", "ok", "warn", "bad"]          # read as text on bg and surface
 
 
@@ -81,5 +82,13 @@ def test_new_digest_entries_keep_muted_text_readable():
 def test_trust_grade_badges_meet_aa_in_light_mode():
     light, _ = blocks("trust")
     for ink, ground in (("ok", "ok-soft"), ("sev-medium", "warn-soft"), ("sev-high", "sev-high-soft"), ("sev-critical", "bad-soft")):
+        ratio = contrast(light[ink], light[ground])
+        assert ratio >= 4.5, f"--{ink} on --{ground} is {ratio:.2f}:1"
+
+
+@pytest.mark.skipif(not (THEMES / "blueprints").is_dir(), reason="no Blueprints pack in this repository")
+def test_blueprints_chips_and_badges_meet_aa_in_light_mode():
+    light, _ = blocks("blueprints")
+    for ink, ground in (("accent", "accent-soft"), ("ok", "ok-soft"), ("bad", "bad-soft"), ("muted", "surface-2")):
         ratio = contrast(light[ink], light[ground])
         assert ratio >= 4.5, f"--{ink} on --{ground} is {ratio:.2f}:1"

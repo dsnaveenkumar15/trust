@@ -56,6 +56,8 @@
 .planet-trust .finding .mono:first-child { color: var(--ink); font-weight: 500; }
 .planet-trust .quote, .planet-trust pre { font-family: var(--mono); background: var(--surface-2); border-color: var(--rule); }
 .planet-trust .window { border-radius: var(--r-lg); }
+.planet-trust h1.mono { font-family: var(--mono); font-weight: 500; font-size: clamp(24px, 3.4vw, 38px); overflow-wrap: anywhere; }
+.planet-trust .window-finding .quote { background: var(--bg); }          /* the panel is --surface-2: the quote needs its own ground */
 .planet-trust .window-head { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
 .planet-trust .chip-bad { background: var(--bad-soft); color: var(--sev-critical); }
 

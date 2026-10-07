@@ -54,6 +54,14 @@ Everything runs on one VPS (Ubuntu, Docker Compose), behind one reverse proxy.
   state is kept in memory. Its image is read-only.
 - **batch** runs the durable job worker: collect, audit, digest, publish. Slow or failing jobs never block a page.
 
+### Agent runtime (`core/agent/`)
+
+Shared by Radar's upgrade agent and the Blueprints architect: the model gateway with budgets, fallback and cost tracking
+(`gateway`), per-app settings under a prefix, `AGENT_` or `ARCHITECT_` (`config`), the run store and background runner
+with one table set per app, `agent_*` or `architect_*` (`runs`), and the server-sent-events follower (`stream`). Models
+flagged public (free tiers may keep prompts) are used only when the input allows it; everything else is sent with
+data collection denied.
+
 ### Durable job engine (`core/jobs.py`, `core/worker.py`)
 
 - Idempotent enqueue (a job key cannot be queued twice), leased claims, per-stage cached outputs, exponential

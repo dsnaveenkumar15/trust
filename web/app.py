@@ -83,6 +83,29 @@ def _wire_radar_agent(app: FastAPI, settings: Settings) -> None:
         pass                                             # the app still starts; /healthz reports the database as unready
 
 
+def _wire_architect(app: FastAPI, settings: Settings) -> None:
+    from blueprints.architect import runs as arch_runs
+    from core.agent.gateway import chat_factory
+    from core.agent.runs import Runner
+    from web import blueprints_architect
+    app.state.architect_config = arch_runs.load_config()
+    factory = lambda cfg: getattr(app.state, "architect_factory", None) or chat_factory(cfg)  # noqa: E731  tests set architect_factory
+    work = arch_runs.make_work(lambda: app.state.architect_config, factory, lambda: blueprints_architect.sources(app))
+    app.state.architect_runner = Runner(settings.db_path, app.state.architect_config, arch_runs.STORE, work, arch_runs.error_text)
+    app.include_router(blueprints_architect.router)
+    try:                                                 # a restart ends runs that were in flight; old runs expire
+        conn = connect(settings.db_path)
+        try:
+            arch_runs.STORE.ensure_schema(conn)
+            arch_runs.STORE.interrupt_running(conn, time.time())
+            arch_runs.STORE.expire(conn, time.time())
+            arch_runs.STORE.expire_waiting(conn, time.time(), arch_runs.WAIT_SECONDS)
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        pass
+
+
 def _wire_blueprints(app: FastAPI, settings: Settings, homes: dict) -> None:
     from web import admin_blueprints, blueprints_api, blueprints_site
     app.state.blueprints_data = blueprints_site.BlueprintsData(settings.data_root)
@@ -97,6 +120,7 @@ def _wire_blueprints(app: FastAPI, settings: Settings, homes: dict) -> None:
     app.include_router(blueprints_api.router)
     app.include_router(admin_blueprints.router)
     app.state.admin_sections["blueprints"] = admin_blueprints.section
+    _wire_architect(app, settings)
 
 
 
