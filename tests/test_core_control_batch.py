@@ -92,3 +92,51 @@ def test_make_backend_prefers_openrouter_and_falls_back_to_claude(conn):
     assert b.name == "openrouter" and b.model == "m/x"
     c = batch.make_backend(conn, {"TRUST_MODEL": "sonnet"}, "TRUST_MODEL")
     assert c.name == "claude_cli"
+
+
+from pydantic import BaseModel, Field  # noqa: E402
+
+
+class _Item(BaseModel):
+    quote: str = Field(max_length=10)
+    note: str | None = Field(default=None, max_length=8)
+
+
+class _Out(BaseModel):
+    summary: str = Field(max_length=20)
+    items: list[_Item] = Field(default_factory=list, max_length=2)
+    tags: list[str] = Field(default_factory=list, max_length=3)
+
+
+def _long(model_json):
+    return httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, json={
+        "choices": [{"message": {"content": model_json}}], "usage": {"total_tokens": 9, "cost": 0.001}})))
+
+
+def test_over_long_text_and_lists_are_cut_to_the_schemas_limits_not_rejected():
+    from core.llm import Prompt
+    reply = json.dumps({"summary": "s" * 50, "items": [{"quote": "q" * 30, "note": "n" * 30}, {"quote": "ok"}, {"quote": "dropped"}],
+                        "tags": ["a", "b", "c", "d", "e"]})
+    text = OpenRouterBackend("m", "k", client=_long(reply))(Prompt("t", "t@1", "sys", "usr"), _Out.model_json_schema())
+    out = _Out.model_validate_json(text)                                      # validates: nothing to reject any more
+    assert out.summary == "s" * 20 and len(out.items) == 2 and out.items[0].quote == "q" * 10 and out.items[0].note == "n" * 8
+    assert out.tags == ["a", "b", "c"] and out.items[1].quote == "ok"
+
+
+def test_a_cut_quote_is_still_a_verbatim_prefix_without_an_ellipsis():
+    from core.llm import Prompt
+    reply = json.dumps({"summary": "fine", "items": [{"quote": "abcdefghijklmnop"}]})
+    out = _Out.model_validate_json(OpenRouterBackend("m", "k", client=_long(reply))(Prompt("t", "t@1", "s", "u"), _Out.model_json_schema()))
+    assert out.items[0].quote == "abcdefghij" and "…" not in out.items[0].quote
+
+
+def test_a_reply_that_is_not_json_is_returned_untouched_for_the_gateway_to_reject():
+    from core.llm import Prompt
+    assert OpenRouterBackend("m", "k", client=_long("not json at all"))(Prompt("t", "t@1", "s", "u"), _Out.model_json_schema()) == "not json at all"
+
+
+def test_fenced_json_is_clipped_too():
+    from core.llm import Prompt
+    reply = "```json\n" + json.dumps({"summary": "x" * 99}) + "\n```"
+    out = _Out.model_validate_json(OpenRouterBackend("m", "k", client=_long(reply))(Prompt("t", "t@1", "s", "u"), _Out.model_json_schema()))
+    assert out.summary == "x" * 20
