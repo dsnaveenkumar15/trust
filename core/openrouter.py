@@ -2,6 +2,7 @@
 Providers that keep prompts are excluded; the reported cost of each call is kept for the daily cap."""
 import json
 import re
+import time
 
 import httpx
 
@@ -9,6 +10,15 @@ from core.llm import AuthExpired, BackendError, Prompt, RateLimited
 
 
 FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)
+
+
+def _retry_after(response: httpx.Response) -> float:
+    """Seconds to wait after a 429: the server's Retry-After when it is a sensible number, else five minutes; at most an hour."""
+    try:
+        wait = float(response.headers.get("Retry-After", ""))
+    except ValueError:
+        return 300.0
+    return min(max(wait, 1.0), 3600.0) if wait == wait else 300.0
 
 
 def _resolve(schema: dict, defs: dict) -> dict:
@@ -56,8 +66,9 @@ def _clip_reply(text: str, json_schema: dict) -> str:
 class OpenRouterBackend:
     name = "openrouter"
 
-    def __init__(self, model: str, api_key: str, base_url: str = "https://openrouter.ai/api/v1", client: httpx.Client | None = None):
-        self.model, self.api_key, self.base_url = model, api_key, base_url.rstrip("/")
+    def __init__(self, model: str, api_key: str, base_url: str = "https://openrouter.ai/api/v1", client: httpx.Client | None = None,
+                 clock=time.time):
+        self.model, self.api_key, self.base_url, self.clock = model, api_key, base_url.rstrip("/"), clock
         self.client = client or httpx.Client(timeout=120)
         self.last_usage = {"usd": 0.0, "tokens": 0}
 
@@ -73,7 +84,9 @@ class OpenRouterBackend:
         except httpx.HTTPError as exc:
             raise BackendError(f"openrouter unreachable: {type(exc).__name__}") from exc
         if r.status_code == 429:
-            raise RateLimited("openrouter rate limited")
+            exc = RateLimited("openrouter rate limited")
+            exc.reset_at = self.clock() + _retry_after(r)          # the worker retries then, not at the next Claude night window
+            raise exc
         if r.status_code in (401, 402, 403):
             raise AuthExpired(f"openrouter refused the key ({r.status_code})")
         if r.status_code != 200:

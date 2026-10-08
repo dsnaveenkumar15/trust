@@ -140,3 +140,23 @@ def test_fenced_json_is_clipped_too():
     reply = "```json\n" + json.dumps({"summary": "x" * 99}) + "\n```"
     out = _Out.model_validate_json(OpenRouterBackend("m", "k", client=_long(reply))(Prompt("t", "t@1", "s", "u"), _Out.model_json_schema()))
     assert out.summary == "x" * 20
+
+
+def _limited(headers=None):
+    return httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(429, headers=headers or {}, json={"error": {"message": "slow down"}})))
+
+
+def test_a_rate_limited_batch_call_retries_in_minutes_not_at_the_next_claude_night():
+    now = 1_790_000_000.0
+    with pytest.raises(RateLimited) as e:
+        OpenRouterBackend("m", "k", client=_limited({"Retry-After": "120"}), clock=lambda: now)(P, SCHEMA)
+    assert e.value.reset_at == now + 120
+    with pytest.raises(RateLimited) as e:
+        OpenRouterBackend("m", "k", client=_limited(), clock=lambda: now)(P, SCHEMA)
+    assert e.value.reset_at == now + 300                                       # no header: five minutes
+    with pytest.raises(RateLimited) as e:
+        OpenRouterBackend("m", "k", client=_limited({"Retry-After": "999999"}), clock=lambda: now)(P, SCHEMA)
+    assert e.value.reset_at == now + 3600                                      # a huge or odd value is capped at an hour
+    with pytest.raises(RateLimited) as e:
+        OpenRouterBackend("m", "k", client=_limited({"Retry-After": "soon"}), clock=lambda: now)(P, SCHEMA)
+    assert e.value.reset_at == now + 300
