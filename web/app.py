@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from datetime import datetime, timezone
 import time
@@ -58,6 +59,7 @@ def _wire_redteam(app: FastAPI, settings: Settings) -> None:
     work = rt_runs.make_work(lambda: app.state.redteam_config, factory, github)
     app.state.redteam_runner = Runner(settings.db_path, app.state.redteam_config, rt_runs.STORE, work, rt_runs.error_text)
     app.include_router(trust_redteam.router)
+    _control(app, settings, rt_runs.STORE, "redteam", "Red Team", "redteam_config", "redteam_runner")
     try:                                                 # a restart ends runs that were in flight; old runs expire
         conn = connect(settings.db_path)
         try:
@@ -68,6 +70,21 @@ def _wire_redteam(app: FastAPI, settings: Settings) -> None:
             conn.close()
     except sqlite3.Error:
         pass
+
+
+def _control(app: FastAPI, settings: Settings, run_store, prefix: str, label: str, config_attr: str, runner_attr: str) -> None:
+    """Put one agent under the console's controls: effective settings, stop-all and the brake, live runs-at-once."""
+    from core.control import agents as control_agents
+
+    def concurrent() -> int:
+        conn = connect(settings.db_path)
+        try:
+            return run_store.effective_config(conn, getattr(app.state, config_attr)).concurrent
+        finally:
+            conn.close()
+    control_agents.install(run_store, lambda: os.environ.get("OPENROUTER_API_KEY", ""))
+    control_agents.register(app, prefix, label, run_store, config_attr)
+    getattr(app.state, runner_attr).limit = concurrent
 
 
 def _wire_radar(app: FastAPI, settings: Settings, homes: dict) -> None:
@@ -98,6 +115,7 @@ def _wire_radar_agent(app: FastAPI, settings: Settings) -> None:
     app.state.agent_config = load_config()
     app.state.agent_runner = agent_runs.Runner(settings.db_path, app.state.agent_config, make_context_factory(app, settings))
     app.include_router(radar_agent.router)
+    _control(app, settings, agent_runs.STORE, "agent", "Upgrade agent", "agent_config", "agent_runner")
     try:                                                 # a restart ends runs that were in flight; old runs expire
         conn = connect(settings.db_path)
         try:
@@ -120,6 +138,7 @@ def _wire_architect(app: FastAPI, settings: Settings) -> None:
     work = arch_runs.make_work(lambda: app.state.architect_config, factory, lambda: blueprints_architect.sources(app))
     app.state.architect_runner = Runner(settings.db_path, app.state.architect_config, arch_runs.STORE, work, arch_runs.error_text)
     app.include_router(blueprints_architect.router)
+    _control(app, settings, arch_runs.STORE, "architect", "Architect", "architect_config", "architect_runner")
     try:                                                 # a restart ends runs that were in flight; old runs expire
         conn = connect(settings.db_path)
         try:
@@ -170,6 +189,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.settings = settings
     app.state.admin_limiter = RateLimiter(per_minute=30, burst=30)
     app.state.admin_sections = {}      # planet -> provider(conn, now) -> dict, in wiring order
+    app.state.control_agents = []      # agents under the console's controls (core.control.agents.register)
     app.state.templates = Jinja2Templates(directory=str(HERE / "templates"))
     app.state.templates.env.filters["model_label"] = model_label
     app.state.templates.env.filters["date"] = lambda ts: (
@@ -234,6 +254,8 @@ def create_app(settings: Settings) -> FastAPI:
         WIRING[planet](app, settings, homes)
     from web.admin import router as admin_router
     app.include_router(admin_router)
+    from web.control import router as control_router
+    app.include_router(control_router)           # /internal/control: token-guarded, reached only by the console
 
     return app
 

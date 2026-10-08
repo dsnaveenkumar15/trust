@@ -248,3 +248,17 @@ def test_work_reads_the_small_model_setting_and_runs_both_victims(tmp_path):
 def test_without_the_setting_the_roles_have_no_small_victim():
     cfg = runs.load_config(ENV)
     assert cfg.small_models == [] and "small" not in runs.roles(cfg)
+
+
+def test_a_pasted_list_run_never_builds_a_github_client(tmp_path):
+    conn = connect(str(tmp_path / "r.db"))
+    runs.STORE.ensure_schema(conn)
+    text = json.dumps({"tools": [{"name": "add", "description": "Adds."}]})
+    rid = runs.STORE.create_run(conn, {"kind": "manifest", "text": text, "consent": True}, "new", "ip", 1.0)
+
+    def no_github(conn):
+        raise AssertionError("a pasted list needs no GitHub client")
+    model = FakeModel(analyst=[RuntimeError("x")], victim=polite)
+    status, _ = runs.make_work(lambda: runs.load_config(ENV), lambda cfg: (lambda name: model), no_github,
+                               lambda: random.Random(2))(conn, rid, lambda t, p: None)
+    assert status == "done"

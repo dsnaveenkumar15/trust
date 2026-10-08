@@ -32,3 +32,4 @@ def test_a_model_priced_at_zero_costs_nothing_when_the_provider_reports_no_cost(
                  budget(), lambda *a: None, lambda: None)
     gw.invoke([], role="bulk")
     assert gw.budget.usd == 0.0 and gw.budget.tokens == 10_000
+

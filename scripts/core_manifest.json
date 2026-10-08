@@ -51,6 +51,11 @@
     "tests/test_core_agent_gateway.py",
     "tests/test_core_agent_config.py",
     "tests/test_core_agent_runs.py",
-    "tests/test_core_agent_structured.py"
+    "tests/test_core_agent_structured.py",
+    "web/control.py",
+    "tests/test_core_control_store.py",
+    "tests/test_core_control_brake.py",
+    "tests/test_core_control_agents.py",
+    "tests/test_core_control_batch.py"
   ]
 }

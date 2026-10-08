@@ -4,7 +4,8 @@ import time
 
 import httpx
 
-from core.claude_cli import ClaudeCliBackend
+from core.claude_cli import ClaudeCliBackend  # noqa: F401  (kept importable for callers and tests)
+from core.control.batch import make_backend
 from core.github import GitHub
 from core.jobs import enqueue
 from core.periodic import schedule
@@ -65,7 +66,7 @@ def build_job_types(conn, github=None, backend=None, use_llm: bool = True, regis
     if not use_llm:
         backend = None
     elif backend is None:
-        backend = GuardedBackend(conn, ClaudeCliBackend(model=os.environ.get("TRUST_MODEL", "sonnet")))
+        backend = make_backend(conn, os.environ, "TRUST_MODEL")      # OpenRouter under the daily cap, else the Claude CLI
     model = getattr(getattr(backend, "inner", backend), "model", None) or getattr(backend, "name", None)
     audit_stages = [
         ("fetch", lambda job, out: stage_fetch(github, job.payload["repo"], job.payload["sha"])),

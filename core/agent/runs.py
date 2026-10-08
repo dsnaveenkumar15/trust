@@ -51,6 +51,14 @@ class RunStore:
             raise ValueError(f"bad table prefix {prefix!r}")
         self.p, self.keep_days, self.holding, self.interrupted, self.id_bytes = prefix, keep_days, tuple(holding), interrupted, id_bytes
         self.messages = {**MESSAGES, **(messages or {})}
+        self.control = None             # set by core.control.agents.install: (conn, cfg, now) -> (effective cfg, paused message)
+
+    def _controlled(self, conn, cfg, now: float):
+        return (cfg, None) if self.control is None else self.control(conn, cfg, now)
+
+    def effective_config(self, conn, cfg):
+        """The agent's config with the console's settings applied (cfg itself when no controls are installed)."""
+        return cfg if self.control is None else self.control(conn, cfg, time.time())[0]
 
     def _in(self, statuses) -> str:
         return ",".join("'" + s + "'" for s in statuses)          # code constants only, never visitor input
@@ -66,8 +74,9 @@ class RunStore:
 
     def create_checked(self, conn, cfg, input: dict, mode: str, ip_hash: str, now: float) -> str:
         """Limit check and run creation under one write lock, so simultaneous posts cannot both pass the limits."""
+        cfg, paused = self._controlled(conn, cfg, now)       # may fetch OpenRouter's figure: never inside the write lock
         with tx(conn):
-            self.check_limits(conn, cfg, ip_hash, now)
+            self.check_limits(conn, cfg, ip_hash, now, paused=paused, controlled=True)
             return self.create_run(conn, input, mode, ip_hash, now)
 
     def set_running(self, conn, run_id: str) -> None:
@@ -173,8 +182,12 @@ class RunStore:
         return conn.execute(f"SELECT count(*) FROM {self.p}_events WHERE type='usage' AND at>=? "
                             f"AND json_extract(payload, '$.model') IN ({marks})", (midnight(now), *models)).fetchone()[0]
 
-    def check_limits(self, conn, cfg, ip_hash: str, now: float) -> None:
+    def check_limits(self, conn, cfg, ip_hash: str, now: float, paused: str | None = None, controlled: bool = False) -> None:
         m = self.messages
+        if not controlled:                                    # called directly: apply the console's settings here
+            cfg, paused = self._controlled(conn, cfg, now)
+        if paused:
+            raise LimitError(503, paused)
         if not cfg.enabled or not self.is_enabled(conn):
             raise LimitError(403, m["off"])
         if self.day_spend(conn, now) >= cfg.daily_usd:
@@ -195,9 +208,10 @@ class Runner:
     """Runs agents on background threads, at most `cfg.concurrent` at once; the rest wait (status queued).
     `work(conn, run_id, emit)` does the run and returns (status, result)."""
 
-    def __init__(self, db_path: str, cfg, store: RunStore, work, error_text=_default_error):
+    def __init__(self, db_path: str, cfg, store: RunStore, work, error_text=_default_error, limit=None):
         self.db_path, self.cfg, self.store, self.work, self.error_text = db_path, cfg, store, work, error_text
-        self.slots = threading.BoundedSemaphore(cfg.concurrent)
+        self.limit = limit or (lambda: cfg.concurrent)          # live: the console may change runs-at-once while the app runs
+        self.cond, self.active = threading.Condition(), 0
 
     def start(self, run_id: str) -> None:
         threading.Thread(target=self._run, args=(run_id,), name=f"{self.store.p}-{run_id}", daemon=True).start()
@@ -206,11 +220,19 @@ class Runner:
         s = self.store
         conn = connect(self.db_path)
         try:
-            with self.slots:
+            with self.cond:
+                while self.active >= max(1, self.limit()):
+                    self.cond.wait(1)
+                self.active += 1
+            try:
                 s.set_running(conn, run_id)
                 emit = lambda type, payload: s.add_event(conn, run_id, type, payload, time.time())  # noqa: E731
                 status, result = self.work(conn, run_id, emit)
                 s.finish(conn, run_id, status, result, None, time.time())
+            finally:
+                with self.cond:
+                    self.active -= 1
+                    self.cond.notify_all()
         except Exception as exc:                          # visitor-facing message; details stay in the server log
             s.add_event(conn, run_id, "error", {"text": self.error_text(exc)}, time.time())
             s.finish(conn, run_id, "failed", None, repr(exc)[:2000], time.time())

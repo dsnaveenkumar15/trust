@@ -98,15 +98,28 @@ def markdown(result: dict) -> str:
     return "\n".join(lines)
 
 
+SECRET_MARK = "<fake-secret>"
+
+
+def _scrub(value, secrets: list[str]):
+    """The pack never carries the run's fake secret values: they are replaced by a mark (replay plants new ones)."""
+    if not secrets:
+        return value
+    text = json.dumps(value, ensure_ascii=False)
+    for s in secrets:
+        text = text.replace(s, SECRET_MARK)
+    return json.loads(text)
+
+
 def pack(result: dict) -> dict:
     keep = ("id", "tool", "quote", "verdict", "hits", "spec", "trace", "fix", "fix_verdict")
     entries = result.get("victims") or [{**CAREFUL, "model": "", "grade": result.get("grade")}]
-    return {"format": PACK, "target": result["target"], "static": result["static"], "reach": result["reach"],
+    return _scrub({"format": PACK, "target": result["target"], "static": result["static"], "reach": result["reach"],
             "drift": result["drift"], "grade": result["grade"],
             "victims": [{"key": v["key"], "label": v["label"], "model": v.get("model", ""), "grade": v.get("grade")} for v in entries],
             "scenarios": [{**{k: s.get(k) for k in keep},
                            "victims": [{k: v.get(k) for k in ("key", "verdict", "hits", "trace", "fix_verdict")} for v in s["victims"]]
-                           if s.get("victims") else None} for s in result["scenarios"]]}
+                           if s.get("victims") else None} for s in result["scenarios"]]}, list(result.get("canaries") or []))
 
 
 def replay(p: dict, gateway, rng) -> list[dict]:

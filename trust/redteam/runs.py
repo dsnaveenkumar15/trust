@@ -81,11 +81,11 @@ def make_work(get_config, get_factory, get_github, rng_factory=None):
         def locked_emit(type_, payload):
             with lock:
                 emit(type_, payload)
-        cfg = get_config()
+        cfg = STORE.effective_config(conn, get_config())     # the console's settings apply to this run
         inp = STORE.get_run(conn, run_id)["input"]
         locked_emit("node", {"name": "fetch", "status": "start"})
         try:
-            target = inputs.INPUTS[inp["kind"]](inp["text"], get_github(conn))
+            target = inputs.INPUTS[inp["kind"]](inp["text"], get_github(conn) if inp["kind"] == "repo" else None)
         except inputs.InputError as exc:
             locked_emit("error", {"text": str(exc)})
             return "stopped", {"reason": str(exc)}

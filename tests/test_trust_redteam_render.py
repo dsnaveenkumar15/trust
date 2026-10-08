@@ -137,3 +137,10 @@ def test_the_per_model_grade_follows_the_same_rule():
     assert grade.by_victim([s, sc("resisted", victims=[{"key": "careful", "verdict": "resisted"}, {"key": "small", "verdict": "resisted"}]),
                             sc("resisted", victims=[{"key": "careful", "verdict": "resisted"}, {"key": "small", "verdict": "resisted"}])],
                            {"run": ["shell"]}, ["careful", "small"]) == {"careful": "C", "small": "A"}
+
+
+def test_the_pack_never_carries_the_fake_secret_values():
+    r = two_victim_result()
+    r["scenarios"][0]["trace"] = r["scenarios"][0]["victims"][1]["trace"]
+    text = json.dumps(render.pack(r))
+    assert "cnryabc" not in text and "<fake-secret>" in text
