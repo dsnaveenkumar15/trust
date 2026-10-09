@@ -2,9 +2,9 @@
 
 Evidence-based security grades for MCP servers and agent tools.
 
-A self-contained app of the naveenlabs AI galaxy (siblings: Radar, Blueprints). Clone it, install, run: nothing else is needed.
-Design: `docs/design.md` (one design for all three apps; this one implements §4 (core) and §5 (Trust)).
-Architecture, security, reliability and operations: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+A self-contained app. Clone it, install, run: nothing else is needed.
+How it works, with diagrams (architecture, security, reliability, operations): [`docs/trust/ARCHITECTURE.md`](docs/trust/ARCHITECTURE.md).
+What was built and when: [`docs/trust/HISTORY.md`](docs/trust/HISTORY.md).
 
 Production at a glance: a hardened web container (non-root, read-only image, no Linux capabilities, CPU and memory
 limits) with a Docker health check on `/healthz` (which opens the database); HSTS, a strict CSP and a permissions
