@@ -160,18 +160,95 @@ Data: one SQLite database (WAL, 30 s busy timeout) in Trust's volume, backed up 
 
 ## 8. Operations
 
+Written in ASD-STE100 style (Simplified Technical English): one instruction in each step, active voice, short
+sentences. Do all the steps on the server, as root.
+
+### Procedure 1: Deploy a new version
+
+1. Go to the Trust folder:
+
+   ```bash
+   cd /opt/trust
+   ```
+
+2. Write down the current commit. You need it if you must go back (Procedure 2).
+
+   ```bash
+   git rev-parse --short HEAD
+   ```
+
+3. Get the new version:
+
+   ```bash
+   git pull
+   ```
+
+4. Build and start the app. Use the two `-f` flags.
+
+   CAUTION: Without the two `-f` flags, the app does not get its optional read-only data.
+
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d --build
+   ```
+
+5. Make sure that the web container is healthy. Do this command until it shows `healthy` (about 30 seconds).
+
+   ```bash
+   docker inspect -f '{{.State.Health.Status}}' trust-web-1
+   ```
+
+6. Make sure that the worker started without errors. The command must show `0`.
+
+   ```bash
+   docker logs --since 2m trust-batch-1 2>&1 | grep -c Traceback
+   ```
+
+   If the command shows more than `0`, read the log (`docker logs --since 2m trust-batch-1`). A missing package
+   usually means that `requirements.txt` was not made again after a dependency change.
+
+7. Make sure that the public site answers. The command must show `200`.
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://trust.naveenlabs.tech/healthz
+   ```
+
+### Procedure 2: Go back to the previous version
+
+Use this procedure if Procedure 1 fails at step 5, 6 or 7.
+
+1. Go to the Trust folder (`cd /opt/trust`).
+2. Get the commit that you wrote down in Procedure 1, step 2:
+
+   ```bash
+   git checkout <commit>
+   ```
+
+3. Do Procedure 1, steps 4 to 7 again.
+
+### Procedure 3: Stop the Red Team immediately
+
+Use this procedure if the Red Team costs too much or gives bad results. The agent stops when any one of its switches
+is off. Runs that started before continue to their limits. Trust's `/admin` page has no Red Team switch.
+
+1. Open the owner's control console and go to the Trust page.
+2. Set the Red Team switch to off. Write a note that gives the reason.
+3. Open `https://trust.naveenlabs.tech/redteam`. Make sure that it shows "The red team is not taking new runs right
+   now".
+
+If the console is not available, set `REDTEAM_ENABLED=0` in `/opt/trust/.env`. Then do this command:
+
 ```bash
-cd /opt/trust && git pull
-docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d --build
-docker inspect -f '{{.State.Health.Status}}' trust-web-1      # wait for "healthy"
-docker logs --since 2m trust-batch-1                           # check the image imports
+docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d --force-recreate web
 ```
 
-Rollback: `git checkout <previous commit>`, then the same `up -d --build`. Settings: `.env.example` lists every
-variable (`ADMIN_PASSWORD`, `OPENROUTER_API_KEY`, `GITHUB_TOKEN`, `REDTEAM_*`, `BATCH_MODEL`, `BATCH_DAILY_USD`,
-`CONTROL_TOKEN`, `KUMA_PUSH_URL`).
+CAUTION: If the console has an override that sets `redteam.enabled` to on, the `.env` value has no effect. Then
+the console is the only switch.
 
-Shared code: `core/` and the shared web kit come from the `atlas` monorepo (`CORE_VERSION` names the commit);
+To stop all paid work in Trust (agent and batch), set "stop all" in the control console.
+
+### Settings
+
+`.env.example` lists every setting. `core/` and the shared web kit come from the `atlas` monorepo (`CORE_VERSION` names the commit);
 `scripts/sync_core.py --check` shows drift. Change shared code in atlas first.
 
 ## 9. Quality gates
