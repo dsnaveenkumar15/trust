@@ -109,7 +109,8 @@ sequenceDiagram
 - **Shared agent runtime** (`core/agent/`): model gateway (budget checked before every call, backup model, real cost
   from the response), run store and runner, server-sent-events stream that survives a reload. A restart marks runs in
   flight as failed with a clear message. Visitor keys are salted hashes.
-- **Off switch:** `REDTEAM_ENABLED=0` in `.env`, then recreate `web`; or the switch in the console.
+- **Off switch:** "Turn new runs off" in `/admin` (always works), the switch in the owner's console, or
+  `REDTEAM_ENABLED=0` in `.env` and a recreated `web` (section 8, Procedure 3).
 
 ## 5. Owner controls
 
@@ -228,21 +229,21 @@ Use this procedure if Procedure 1 fails at step 5, 6 or 7.
 ### Procedure 3: Stop the Red Team immediately
 
 Use this procedure if the Red Team costs too much or gives bad results. The agent stops when any one of its switches
-is off. Runs that started before continue to their limits. Trust's `/admin` page has no Red Team switch.
+is off. Runs that started before continue to their limits.
 
-1. Open the owner's control console and go to the Trust page.
-2. Set the Red Team switch to off. Write a note that gives the reason.
+1. Open `https://trust.naveenlabs.tech/admin` and log in.
+2. Push "Turn new runs off".
 3. Open `https://trust.naveenlabs.tech/redteam`. Make sure that it shows "The red team is not taking new runs right
    now".
 
-If the console is not available, set `REDTEAM_ENABLED=0` in `/opt/trust/.env`. Then do this command:
+To keep the Red Team off after a restart, also set `REDTEAM_ENABLED=0` in `/opt/trust/.env`. Then do this command:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.siblings.yml up -d --force-recreate web
 ```
 
-CAUTION: If the console has an override that sets `redteam.enabled` to on, the `.env` value has no effect. Then
-the console is the only switch.
+CAUTION: If the owner's control console has an override that sets `redteam.enabled` to on, the `.env` value has no
+effect. The switch in `/admin` always works.
 
 To stop all paid work in Trust (agent and batch), set "stop all" in the control console.
 

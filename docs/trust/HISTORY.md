@@ -20,7 +20,7 @@ detail.
 | 2026-10-06 | "Security console" identity: IBM Plex, shield mark, severity colours, dark by default; checker beside the live-rules example |
 | 2026-10-07 | Red Team agent: analyst, catalogue of 8 attacks, two victim models with planted fake secrets, code verdicts, fix re-runs, A-F grade per model, regression pack; launch gate passed; switched on. Impersonation no longer forces an automatic F. Read-only GitHub token for repository runs |
 | 2026-10-08 | Owner controls (switches, caps, visitor limits, weekly brake, stop-all) and the private control interface; audit reviews moved to OpenRouter with a daily cap; over-long replies cut to the schema; rate-limited calls retry in minutes |
-| 2026-10-09 | Own architecture and history documents |
+| 2026-10-09 | Own architecture and history documents; operations runbook; a Red Team on/off switch in `/admin` (Radar and Blueprints already had one for their agents) |
 
 ## Open items
 
