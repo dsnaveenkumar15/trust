@@ -6,7 +6,8 @@ detail.
 ## Where things stand (2026-10-09)
 
 - Live at `trust.naveenlabs.tech`: tool-list checker, methodology, bring-your-own-key review, Red Team agent.
-- Batch audits run on OpenRouter under a $0.03 daily cap; 36 audits are queued and drain about 3 a day.
+- Batch audit reviews are **paused** (2026-10-11): they publish nothing public, so the daily spend bought nothing visible.
+  31 audits wait in the queue; turn batch back on in the owner's console to resume.
 - About 580 tests; rule evaluation at precision and recall 1.00.
 
 ## Timeline
@@ -21,9 +22,10 @@ detail.
 | 2026-10-07 | Red Team agent: analyst, catalogue of 8 attacks, two victim models with planted fake secrets, code verdicts, fix re-runs, A-F grade per model, regression pack; launch gate passed; switched on. Impersonation no longer forces an automatic F. Read-only GitHub token for repository runs |
 | 2026-10-08 | Owner controls (switches, caps, visitor limits, weekly brake, stop-all) and the private control interface; audit reviews moved to OpenRouter with a daily cap; over-long replies cut to the schema; rate-limited calls retry in minutes |
 | 2026-10-09 | Own architecture and history documents; operations runbook; a Red Team on/off switch in `/admin` (Radar and Blueprints already had one for their agents) |
+| 2026-10-11 | Batch audit reviews paused from the owner's console (no public output) |
 
 ## Open items
 
-- Raise the batch cap after the OpenRouter weekly reset so the queued audits drain faster.
+- Decide whether to resume batch audits. They matter only if third-party grades are published (`TRUST_THIRD_PARTY=1`).
 - Deferred minors from the Red Team review: the model budget add is not atomic across threads; regression packs keep
   per-run fake canaries.

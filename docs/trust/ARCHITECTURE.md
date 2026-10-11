@@ -70,6 +70,8 @@ flowchart LR
 - **Publishing:** each publish writes an immutable release (files plus SHA-256 manifest) and flips `CURRENT`; web
   verifies the hashes before serving. The last 10 releases are kept, so going back is a pointer change.
 - **Embargo:** publish counts now, details after 30 days.
+- **Current state (2026-10-11):** batch is switched off in the owner's console, so audits wait and make no model calls.
+  Production publishes no third-party grades, so the reviews had no public output.
 
 ## 4. The Red Team agent (`/redteam`)
 
