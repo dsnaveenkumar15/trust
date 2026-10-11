@@ -128,6 +128,9 @@ Every limit that may change without a deploy lives in Trust's own database (`cor
 The value in effect is the `.env` default unless the owner set an override; every change is stored with a note.
 The owner's private console reads and writes them through `/internal/control`, which answers only direct requests on
 the Docker network carrying `X-Control-Token == CONTROL_TOKEN`; through the proxy, or without a token set, it is 404.
+Its report also lists the latest 20 agent runs and batch jobs as metadata only (when, mode, outcome, duration, cost,
+job type, a short error); never the visitor's input, their hashed address, the job payload or the run id, which is the
+private result link.
 
 ## 6. Security
 

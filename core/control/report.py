@@ -30,6 +30,27 @@ def agent_days(conn, run_store, now: float, n: int = 30) -> list[dict]:
     return out
 
 
+def recent_runs(conn, run_store, limit: int = 20) -> list[dict]:
+    """The latest agent runs for the owner's console: when, how, outcome, duration and cost. Never the visitor's input, their
+    hashed address or the run id (the id is the private result link)."""
+    rows = conn.execute(f"SELECT created_at, finished_at, mode, status, cost_usd, tokens, showcase FROM {run_store.p}_runs "
+                        f"ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+    return [{"at": r["created_at"], "mode": r["mode"], "status": r["status"],
+             "seconds": round(r["finished_at"] - r["created_at"], 1) if r["finished_at"] else None,
+             "usd": round(r["cost_usd"] or 0.0, 6), "tokens": r["tokens"] or 0, "showcase": bool(r["showcase"])} for r in rows]
+
+
+def recent_jobs(conn, limit: int = 20) -> list[dict]:
+    """The latest batch jobs: type, state, attempts, when, and a short error. Never the job's key or payload."""
+    try:
+        rows = conn.execute("SELECT job_type, state, attempts, updated_at, last_error FROM jobs ORDER BY updated_at DESC LIMIT ?",
+                            (limit,)).fetchall()
+    except Exception:                                    # a database without the jobs table
+        return []
+    return [{"type": r["job_type"], "state": r["state"], "attempts": r["attempts"], "at": r["updated_at"],
+             "error": (r["last_error"] or "")[:160] or None} for r in rows]
+
+
 def worker(conn, now: float) -> dict:
     try:
         r = conn.execute("SELECT max(updated_at) AS last, sum(state='queued') AS queued, sum(state='running') AS running, "

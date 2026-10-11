@@ -90,3 +90,32 @@ def test_a_non_ascii_token_is_a_404_not_a_server_error(app):
     c = TestClient(app, base_url="http://trust.localhost")
     r = c.get("/internal/control", headers={b"X-Control-Token": "é".encode("latin-1")})
     assert r.status_code == 404
+
+
+def test_the_report_carries_recent_runs_and_jobs_but_never_visitor_input_or_run_ids(app):
+    from core import jobs
+    from core.db import connect
+    from trust.redteam import runs as rt
+    conn = connect(app.state.settings.db_path)
+    rt.STORE.ensure_schema(conn)
+    rid = rt.STORE.create_run(conn, {"tools": "SECRET-VISITOR-INPUT"}, "paste", "IPHASH-VALUE", 1_790_000_000.0)
+    rt.STORE.finish(conn, rid, "done", {"grade": "A"}, None, 1_790_000_041.0)
+    jobs.enqueue(conn, "trust", "trust.publish", "window-1", {"repo": "SECRET-JOB-PAYLOAD"}, now=1_790_000_100.0)
+    r = call(app)
+    body = r.json()
+    runs = next(a for a in body["agents"] if a["prefix"] == "redteam")["runs"]
+    assert runs[0] == {"at": 1_790_000_000.0, "mode": "paste", "status": "done", "seconds": 41.0, "usd": 0.0, "tokens": 0, "showcase": False}
+    job = next(j for j in body["jobs"] if j["type"] == "trust.publish")
+    assert job["state"] == "queued" and job["attempts"] == 0 and job["at"] == 1_790_000_100.0 and job["error"] is None
+    for leak in ("SECRET-VISITOR-INPUT", "IPHASH-VALUE", "SECRET-JOB-PAYLOAD", rid):
+        assert leak not in r.text, leak
+
+
+def test_a_long_job_error_is_cut_short_in_the_report(app):
+    from core import jobs
+    from core.db import connect
+    conn = connect(app.state.settings.db_path)
+    jid = jobs.enqueue(conn, "trust", "trust.audit", "k", {}, now=1_790_000_000.0)
+    conn.execute("UPDATE jobs SET state='dead', last_error=? WHERE id=?", ("x" * 500, jid))
+    job = next(j for j in call(app).json()["jobs"] if j["type"] == "trust.audit")
+    assert job["state"] == "dead" and len(job["error"]) <= 160
