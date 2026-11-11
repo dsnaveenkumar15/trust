@@ -1,7 +1,8 @@
 # core/agent/gateway.py
 """Every model call goes through here: primary then backup model, usage and cost, budgets checked before each call."""
+import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 # USD per million tokens charged when the provider reports no cost and the model has no listed price:
@@ -22,6 +23,7 @@ class Budget:
     usd: float = 0.0
     tokens: int = 0
     tool_calls: int = 0
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)   # scenario threads share one budget
 
     def check(self) -> None:
         if self.usd >= self.max_usd:
@@ -38,8 +40,9 @@ class Budget:
         self.deadline = max(self.deadline, time.monotonic() + seconds)
 
     def add(self, usd: float, tokens: int) -> None:
-        self.usd += usd
-        self.tokens += tokens
+        with self._lock:
+            self.usd += usd
+            self.tokens += tokens
 
 
 def chat_factory(config):

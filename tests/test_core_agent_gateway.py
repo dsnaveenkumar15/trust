@@ -33,3 +33,22 @@ def test_a_model_priced_at_zero_costs_nothing_when_the_provider_reports_no_cost(
     gw.invoke([], role="bulk")
     assert gw.budget.usd == 0.0 and gw.budget.tokens == 10_000
 
+
+
+def test_parallel_scenario_threads_never_lose_a_cost_update():
+    """The red team runs scenarios on threads sharing one run budget. A slow add widens the read-modify-write window the
+    way a free-threaded build (or any future await point) would; the totals must still be exact."""
+    import threading
+
+    class Slow(float):
+        def __add__(self, other):
+            time.sleep(0.002)
+            return Slow(float(self) + other)
+
+    budget = Budget(max_usd=100.0, max_tokens=10**9, max_tool_calls=10**6, deadline=time.monotonic() + 60, usd=Slow(0.0))
+    threads = [threading.Thread(target=budget.add, args=(1.0, 10)) for _ in range(20)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert float(budget.usd) == 20.0 and budget.tokens == 200
