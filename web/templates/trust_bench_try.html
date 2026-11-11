@@ -1,0 +1,12 @@
+{% extends "trust_base.html" %}
+{% block title %}Benchmark try · {{ meta.name }}{% endblock %}
+{% block content %}
+<p><a href="/benchmark?c={{ t.condition }}">← Benchmark</a></p>
+<h1><span class="rt-v rt-v-{{ t.verdict }}">{{ verdict }}</span> {{ t.attack }}</h1>
+<p class="mono muted">{{ t.model }} · {{ label }} · try {{ t.n + 1 }}</p>
+{% if t.hits %}<p>Checks that fired: <span class="mono">{{ t.hits | join(", ") }}</span></p>{% endif %}
+{% if timeline %}<ol class="rt-timeline mono">{% for c in timeline %}
+  <li class="{% if c.leaked %}is-leak{% endif %}">turn {{ c.turn }} · {{ c.tool }}{% if c.host %} (app){% endif %}(<span>{% for text, secret in c.parts %}{% if secret %}<mark class="canary">{{ text }}</mark>{% else %}{{ text }}{% endif %}{% endfor %}</span>){% if c.leaked %} <strong>fake secret sent</strong>{% endif %}</li>
+{% endfor %}</ol>{% else %}<p class="muted">The model called no tools.</p>{% endif %}
+{% if final %}<p class="muted">Final answer:</p><blockquote>{{ final }}</blockquote>{% endif %}
+{% endblock %}

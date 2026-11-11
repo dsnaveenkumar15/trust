@@ -51,6 +51,9 @@ def _timeline(trace: dict | None, secrets: list[str]) -> list[dict]:
     return out
 
 
+timeline = _timeline          # public name for the benchmark's try page
+
+
 def view(result: dict) -> dict:
     secrets = list(result.get("canaries") or [])
     out = dict(result)

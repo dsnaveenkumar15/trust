@@ -59,6 +59,8 @@ def _wire_redteam(app: FastAPI, settings: Settings) -> None:
     work = rt_runs.make_work(lambda: app.state.redteam_config, factory, github)
     app.state.redteam_runner = Runner(settings.db_path, app.state.redteam_config, rt_runs.STORE, work, rt_runs.error_text)
     app.include_router(trust_redteam.router)
+    from web import trust_bench
+    app.include_router(trust_bench.router)
     from web import admin_trust
     app.include_router(admin_trust.router)
     app.state.admin_sections["trust"] = admin_trust.section

@@ -23,9 +23,10 @@ detail.
 | 2026-10-08 | Owner controls (switches, caps, visitor limits, weekly brake, stop-all) and the private control interface; audit reviews moved to OpenRouter with a daily cap; over-long replies cut to the schema; rate-limited calls retry in minutes |
 | 2026-10-09 | Own architecture and history documents; operations runbook; a Red Team on/off switch in `/admin` (Radar and Blueprints already had one for their agents) |
 | 2026-10-11 | Batch audit reviews paused from the owner's console (no public output); the private report lists recent runs and batch jobs (metadata only) for the console |
+| 2026-11-11 | Red Team benchmark (`/benchmark`): the 8 known-bad tool lists on named models under three conditions (no defence, prompt warning, code guard), 3-5 tries per cell, code verdicts, no analyst; owner-run CLI with a hard spending cap and a publish step |
 
 ## Open items
 
 - Decide whether to resume batch audits. They matter only if third-party grades are published (`TRUST_THIRD_PARTY=1`).
-- Deferred minors from the Red Team review: the model budget add is not atomic across threads; regression packs keep
-  per-run fake canaries.
+- Deferred minor from the Red Team review: regression packs keep per-run fake canaries. (The budget add is atomic since
+  2026-11-11.)

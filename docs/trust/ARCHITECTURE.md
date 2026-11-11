@@ -114,6 +114,15 @@ sequenceDiagram
 - **Off switch:** "Turn new runs off" in `/admin` (always works), the switch in the owner's console, or
   `REDTEAM_ENABLED=0` in `.env` and a recreated `web` (section 8, Procedure 3).
 
+- **Benchmark** (`/benchmark`, spec `2026-11-11-trust-redteam-benchmark-design.md`): `trust/redteam/bench.py` attacks the
+  8 known-bad tool lists in `tests/fixtures/trust_redteam/bad/` on the models in `REDTEAM_BENCH_MODELS`, under no
+  defence, a prompt warning and the code guard (the scenario's own fix). Picks come from the rules (no analyst), verdicts
+  from the same code checks. One model per gateway role, so no backup model can answer for another. Tries live in
+  `redteam_bench_tries`, keyed by a version hashed from the victim prompt, the warning, the fixtures and the checks, so a
+  re-run only fills missing cells and a changed check starts a fresh set. One hard cap per run (`REDTEAM_BENCH_USD`,
+  default $0.50); the run refuses to start when it would leave the OpenRouter key under $0.20. The page shows only what
+  `python -m trust.redteam.bench publish` stored in `redteam_bench_published`.
+
 ## 5. Owner controls
 
 Every limit that may change without a deploy lives in Trust's own database (`core/control/`):

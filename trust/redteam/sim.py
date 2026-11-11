@@ -30,8 +30,9 @@ def _respond(spec: SimSpec, c: dict, original: str | None, args: dict) -> str:
     return spec.outputs.get(original, "OK.")
 
 
-def simulate(gateway, spec: SimSpec, c: dict, role: str = "victim", turns: int = MAX_TURNS) -> Trace:
-    messages = [SystemMessage(VICTIM_SYSTEM), HumanMessage(spec.task)]
+def simulate(gateway, spec: SimSpec, c: dict, role: str = "victim", turns: int = MAX_TURNS,
+             system: str = VICTIM_SYSTEM) -> Trace:
+    messages = [SystemMessage(system), HumanMessage(spec.task)]
     calls, final, used = [], "", 0
     for turn in range(turns):
         msg = gateway.invoke(messages, tools=spec.tools, role=role)
