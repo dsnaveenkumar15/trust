@@ -168,3 +168,5 @@ def test_headroom_reads_limit_minus_usage():
     assert bench.key_headroom("k", "https://x/api/v1", http=Http({"data": {"limit": 2.0, "usage": 1.25}})) == pytest.approx(0.75)
     assert bench.key_headroom("k", "https://x/api/v1", http=Http({"data": {"limit": None, "usage": 1.0}})) == float("inf")
     assert bench.key_headroom("k", "https://x/api/v1", http=Http({"nope": 1})) is None
+    weekly = {"data": {"limit": 2, "limit_remaining": 1.986, "limit_reset": "weekly", "usage": 1.993}}   # real shape: usage is all-time
+    assert bench.key_headroom("k", "https://x/api/v1", http=Http(weekly)) == pytest.approx(1.986)

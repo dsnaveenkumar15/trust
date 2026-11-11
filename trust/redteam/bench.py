@@ -125,8 +125,14 @@ def key_headroom(api_key: str, base_url: str, http=None) -> float | None:
             data = r.json().get("data") if r.status_code == 200 else None
         except Exception:
             continue
-        if isinstance(data, dict) and "limit" in data and isinstance(data.get("usage"), (int, float)):
-            return float("inf") if data["limit"] is None else float(data["limit"]) - float(data["usage"])
+        if not isinstance(data, dict) or "limit" not in data:
+            continue
+        if data["limit"] is None:
+            return float("inf")
+        if isinstance(data.get("limit_remaining"), (int, float)):     # resets weekly/monthly: `usage` is all-time
+            return float(data["limit_remaining"])
+        if isinstance(data.get("usage"), (int, float)):
+            return float(data["limit"]) - float(data["usage"])
     return None
 
 
