@@ -24,6 +24,7 @@ detail.
 | 2026-10-09 | Own architecture and history documents; operations runbook; a Red Team on/off switch in `/admin` (Radar and Blueprints already had one for their agents) |
 | 2026-10-11 | Batch audit reviews paused from the owner's console (no public output); the private report lists recent runs and batch jobs (metadata only) for the console |
 | 2026-11-11 | Red Team benchmark (`/benchmark`): the 8 known-bad tool lists on named models under three conditions (no defence, prompt warning, code guard), 3-5 tries per cell, code verdicts, no analyst; owner-run CLI with a hard spending cap and a publish step |
+| 2026-11-12 | Engineering explainer deck (`docs/trust/explainer.html`): 18 slides with 3D diagrams of the system, layers, agent graph and sandbox, three real benchmark traces, and the published results; every number checked against the code |
 
 ## Open items
 

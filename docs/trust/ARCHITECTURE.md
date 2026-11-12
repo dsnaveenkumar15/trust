@@ -1,7 +1,8 @@
 # Trust: architecture
 
 How Trust (`trust.naveenlabs.tech`) is built, secured and run. This document covers Trust only. What was built and
-when: [`HISTORY.md`](HISTORY.md).
+when: [`HISTORY.md`](HISTORY.md). A visual walkthrough for presenting: [`explainer.html`](explainer.html) (open it in a
+browser; the 3D views need an internet connection for three.js).
 
 Last reviewed: 2026-10-09.
 
