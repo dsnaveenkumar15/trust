@@ -26,6 +26,7 @@ def test_returns_message_content_and_sends_schema():
     assert seen["body"]["format"] == SCHEMA
     assert seen["body"]["stream"] is False
     assert seen["body"]["options"]["temperature"] == 0
+    assert seen["body"]["options"]["num_thread"] == 3      # the same as Chat sends: a different value makes Ollama reload the model
     assert [m["role"] for m in seen["body"]["messages"]] == ["system", "user"]
 
 

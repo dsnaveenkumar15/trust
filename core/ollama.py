@@ -1,7 +1,13 @@
 """Ollama backend for live features. Internal network only; Ollama has no auth of its own."""
+import os
+
 import httpx
 
 from core.llm import BackendError, Prompt
+
+
+# Every app sharing a model must send the same value: Ollama reloads the model (7 to 100 s) when it changes between calls.
+NUM_THREAD = int(os.environ.get("OLLAMA_THREADS") or 3)
 
 
 class OllamaBackend:
@@ -17,7 +23,7 @@ class OllamaBackend:
             "model": self.model,
             "stream": False,
             "format": json_schema,
-            "options": {"temperature": 0},
+            "options": {"temperature": 0, "num_thread": NUM_THREAD},
             "messages": [
                 {"role": "system", "content": prompt.system},
                 {"role": "user", "content": prompt.user},
