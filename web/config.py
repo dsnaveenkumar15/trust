@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 ALL_PLANETS = ("trust", "radar", "blueprints")
 
+DEFAULT_OLLAMA_MODEL = "qwen2.5:1.5b"      # must be pulled on the Ollama host, or every live model feature is off
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -19,6 +21,10 @@ class Settings:
     dispute_url: str = ""
     trust_data_root: str | None = None      # where Trust's published data is read from (Blueprints); default: data_root
     radar_data_root: str | None = None      # where Radar's published data is read from (Blueprints); default: data_root
+    ollama_model: str = DEFAULT_OLLAMA_MODEL
+    ask_model: str = ""                     # Ask on OpenRouter when set together with the key; else Ollama
+    ask_daily_usd: float = 0.02             # Ask stops for the day when the app's hosted spend reaches this
+    openrouter_key: str = ""
     planets: tuple | None = None            # which planets this deployment serves; default: the planets whose files are present
 
     @staticmethod
@@ -57,6 +63,10 @@ class Settings:
             dispute_url=env.get("DISPUTE_URL", ""),
             trust_data_root=env.get("TRUST_DATA_ROOT") or None,
             radar_data_root=env.get("RADAR_DATA_ROOT") or None,
+            ollama_model=env.get("OLLAMA_MODEL") or DEFAULT_OLLAMA_MODEL,
+            ask_model=env.get("ASK_MODEL", ""),
+            ask_daily_usd=float(env.get("ASK_DAILY_USD") or 0.02),
+            openrouter_key=env.get("OPENROUTER_API_KEY", ""),
             planets=_planets(env.get("PLANETS", "")),
         )
 

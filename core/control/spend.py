@@ -33,8 +33,10 @@ def days(conn, now: float, n: int = 30) -> list[dict]:
 
 
 class CappedBackend:
-    def __init__(self, conn, inner, api_key: str, env_daily_usd: float, clock=time.time):
+    def __init__(self, conn, inner, api_key: str, env_daily_usd: float, clock=time.time,
+                 cap_setting: str | None = "batch.daily_usd"):
         self.conn, self.inner, self.api_key, self.env_daily_usd, self.clock = conn, inner, api_key, env_daily_usd, clock
+        self.cap_setting = cap_setting                 # console override of the cap; None: the given cap always holds
         self.name, self.model = inner.name, getattr(inner, "model", None)
         store.ensure(conn)
 
@@ -52,7 +54,7 @@ class CappedBackend:
             self._refuse("all spending is stopped", now + 3600)
         if reason == "brake":
             self._refuse("the weekly brake is on", brake.next_week_reset(now))
-        cap = store.get(self.conn, "batch.daily_usd")
+        cap = store.get(self.conn, self.cap_setting) if self.cap_setting else None
         cap = self.env_daily_usd if cap is None else cap
         if today(self.conn, now)["usd"] >= cap:
             self._refuse("today's batch budget is used up", _tomorrow(now))

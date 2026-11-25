@@ -204,7 +204,7 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.templates.env.filters["safe_url"] = lambda u: (
         u if isinstance(u, str) and u.startswith(("http://", "https://")) else "")
     app.state.ollama_gate = Gate(max_concurrent=2)
-    app.state.check_backend = OllamaBackend(base_url=settings.ollama_url, timeout_s=30)
+    app.state.check_backend = OllamaBackend(base_url=settings.ollama_url, model=settings.ollama_model, timeout_s=30)
     app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
 
     @app.middleware("http")
